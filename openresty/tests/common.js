@@ -19,6 +19,19 @@ var rest_service = function() {
   return request('http://localhost:8080/rest');
 }
 
+var graphql_simple = function() { 
+  return request('http://localhost:8080/graphql/simple')
+            .post('/')
+            .set('Accept', 'application/json');
+}
+
+var graphql_relay = function() { 
+  return request('http://localhost:8080/graphql/relay')
+            .post('/')
+            .set('Accept', 'application/json');
+}
+
+
 const resetdb = () => {
   const pg = spawnSync('docker', ['exec', PG, 'psql', '-U', SUPER_USER, DB_NAME, '-f', 'docker-entrypoint-initdb.d/sample_data/reset.sql'])
   // console.log (pg.stdout.toString('utf8') )
@@ -26,6 +39,8 @@ const resetdb = () => {
 }
 
 module.exports = {
+  graphql_simple: graphql_simple,
+  graphql_relay: graphql_relay,
   jwt: jwt,
   resetdb: resetdb,
   rest_service: rest_service

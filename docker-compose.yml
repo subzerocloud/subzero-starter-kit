@@ -6,7 +6,7 @@ services:
   # # After after some processing/checks and transformation, the request is forwarded
   # # to PostgREST down the stack.
   openresty:
-    image: openresty/openresty:jessie
+    image: subzerocloud/openresty
     ports:
       - "8080:80"
     links:
@@ -24,6 +24,7 @@ services:
       - DB_SCHEMA=${DB_SCHEMA}
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
+      - RELAY_ID_COLUMN=${RELAY_ID_COLUMN}
     volumes:
       - "./openresty/entrypoint.sh:/entrypoint.sh"
       - "./openresty/nginx/conf/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf"

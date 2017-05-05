@@ -80,3 +80,7 @@ grant select, insert, update, delete on api.subitems to webuser;
 grant select on api.subitems to anonymous;
 -------------------------------------------------------------------------------
 
+
+-- by default all functions are accessible to the public, we need to remove that and define our specific access rules
+revoke all privileges on function api.search_items(text) from public;
+grant execute on function api.search_items(text) to webuser;

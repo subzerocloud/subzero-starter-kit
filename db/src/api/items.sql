@@ -5,5 +5,5 @@
 -- notice how for the api we don't expose the owner_id column even though it exists and is used
 -- in the RLS policy
 create or replace view api.items as
-select id, name, private, (owner_id = request.user_id()) as mine from data.items;
+select data.items.relay_id as id, id as row_id, name, private, (owner_id = request.user_id()) as mine from data.items;
 alter view api.items owner to api; -- it is important to set the correct owner to the RLS policy kicks in

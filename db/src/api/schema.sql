@@ -15,3 +15,4 @@ create role api;
 \ir login.sql
 \ir refresh_token.sql
 
+\ir search_items.sql

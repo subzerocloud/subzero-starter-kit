@@ -6,3 +6,5 @@ create schema data;
 \ir items.sql
 \ir subitems.sql
 \ir secrets.sql
+\ir items_relay_id.sql
+\ir subitems_relay_id.sql
