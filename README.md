@@ -1,10 +1,11 @@
-# PostgREST API Starter Kit
+# subZero GraphQL/REST API Starter Kit
 
-**PostgREST API Starter Kit** is a boilerplate and tooling for authoring **data API**
-backends with [PostgREST](https://postgrest.com).
+**subZero Starter Kit** is a boilerplate and tooling for authoring **data API**
+backends with [subZero](https://subzero.cloud/).
 
 ## Features
 
+✓ Out of the box GraphQL/REST endpoints created by reflection over a PostgreSQL schema<br>
 ✓ Cross-platform development on macOS, Windows or Linux inside [Docker](https://www.docker.com/)<br>
 ✓ [PostgreSQL](https://www.postgresql.org/) database schema boilerplate with authentication and authorization flow<br>
 ✓ [OpenResty](https://openresty.org/en/) configuration files for the reverse proxy<br>
@@ -37,7 +38,8 @@ backends with [PostgREST](https://postgrest.com).
 │   │   ├── conf              # Configuration files
 │   │   └── html              # Static frontend files
 │   ├── tests                 # Mocha based integration tests
-│   │   ├── rest              # Rest interface tests
+│   │   ├── rest              # REST interface tests
+│   │   ├── graphql           # GraphQL interface tests
 │   │   └── common.js         # Helper functions
 │   ├── Dockerfile            # Dockerfile definition for production
 │   └── entrypoint.sh         # Custom entrypoint
@@ -55,16 +57,31 @@ Make sure that you have [Docker](https://www.docker.com/community-edition) v17 o
 Compose](https://docs.docker.com/compose/):
 
 ```bash
-git clone --single-branch https://github.com/subzerocloud/postgrest-starter-kit example-api
+git clone --single-branch https://github.com/subzerocloud/subzero-starter-kit example-api
 cd example-api                  # Change current directory to the newly created one
 docker-compose up -d            # Launch Docker containers
 ```
 
-The API server must become available at [http://localhost:8080/rest](http://localhost:8080/rest).
-Try a simple request
+The API server must become available at [http://localhost:8080/rest](http://localhost:8080/rest) and [http://localhost:8080/graphql](http://localhost:8080/graphql) endpoints for REST and GraphQL respectively.
+Try a simple REST request.
 
 ```bash
 curl http://localhost:8080/rest/items?id=eq.1
+```
+
+Try a GraphQL query in the integrated GraphiQL IDE at [http://localhost:8080/graphiql](http://localhost:8080/graphiql)
+
+```
+{
+  items{
+    id
+    name
+    subitems{
+      id
+      name
+    }
+  }
+}
 ```
 
 ## Testing
@@ -73,6 +90,7 @@ curl http://localhost:8080/rest/items?id=eq.1
 npm install                     # Install test dependencies
 npm run test_db                 # Run pgTAP tests
 npm run test_rest               # Run integration tests
+npm run test_graphql               # Run integration tests
 npm test                        # Run all tests (db, rest)
 ```
 
@@ -82,7 +100,7 @@ If you keep the original Git history after  forking and clonning this repo, you 
 the recent updates back into your project by running:
 
 ```bash
-git remote add upstream https://github.com/subzerocloud/postgrest-starter-kit.git
+git remote add upstream https://github.com/subzerocloud/subzero-starter-kit.git
 git fetch upstream
 git merge upstream/master
 ```
@@ -118,10 +136,10 @@ Anyone and everyone is welcome to contribute.
 ## Support
 
 * [Slack](https://slack.subzero.cloud/) — Watch announcements, share ideas and feedback
-* [GitHub Issues](https://github.com/subzerocloud/postgrest-starter-kit/issues) — Check open issues, send feature requests
+* [GitHub Issues](https://github.com/subzerocloud/subzero-starter-kit/issues) — Check open issues, send feature requests
 
 ## License
 
 Copyright © 2017-present subZero Cloud, LLC.<br />
-This source code is licensed under [MIT](https://github.com/subzerocloud/postgrest-starter-kit/blob/master/LICENSE.txt) license<br />
+This source code is licensed under [MIT](https://github.com/subzerocloud/subzero-starter-kit/blob/master/LICENSE.txt) license<br />
 The documentation to the project is licensed under the [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/) license.
