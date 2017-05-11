@@ -11,7 +11,7 @@ backends with [subZero](https://subzero.cloud/).
 ✓ [OpenResty](https://openresty.org/en/) configuration files for the reverse proxy<br>
 ✓ [Lua](https://www.lua.org/) functions to hook into each stage of the HTTP request and add custom logic (integrate 3rd party systems)<br>
 ✓ Debugging and live code reloading (sql/configs/lua) functionality using [subZero devtools](https://github.com/subzerocloud/devtools)<br>
-✓ Sql unit test using [pgTAP](http://pgtap.org/)<br>
+✓ SQL unit test using [pgTAP](http://pgtap.org/)<br>
 ✓ Integration tests with [SuperTest / Mocha](https://github.com/visionmedia/supertest)<br>
 ✓ (soon) Docker files for building production images<br>
 ✓ Community support on [Slack](https://slack.subzero.cloud/)<br>
@@ -96,7 +96,7 @@ npm test                        # Run all tests (db, rest)
 
 ## Keeping Up-to-Date
 
-If you keep the original Git history after  forking and clonning this repo, you can always fetch and merge
+If you keep the original Git history after  forking and cloning this repo, you can always fetch and merge
 the recent updates back into your project by running:
 
 ```bash
@@ -111,7 +111,7 @@ git merge upstream/master
 Download and install [subZero devtools](https://github.com/subzerocloud/devtools) for your OS.<br />
 Execute `sz` (of the name you used to symlink the binary) in the root of your project.<br />
 After this step you can view the logs of all the stack components (SQL queries will also be logged).
-If you endit and sql/conf/lua file in your project, the changes will immediately be applied.
+If you edit and sql/conf/lua file in your project, the changes will immediately be applied.
 
 
 ![DevTools](https://github.com/subzerocloud/devtools/blob/master/screenshot.png?raw=true "DevTools")
