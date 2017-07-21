@@ -6,32 +6,33 @@ describe('read', function() {
 
   after(function(done){ resetdb(); done(); });
 
-  it('can get all items', function(done) {
+  it('can get all todos', function(done) {
     graphql()
       .set('Authorization', 'Bearer ' + jwt)
       .send({ 
-        query: `{ items { id name } }`
+        query: `{ todos { id todo } }`
       })
       .expect('Content-Type', /json/)
       .expect(200, done)
       .expect( r => {
-        r.body.data.items.length.should.equal(4);
+        // console.log(r.body)
+        r.body.data.todos.length.should.equal(4);
       })
       
   });
 
-  it('can get items and subitems', function(done) {
+  it.skip('can get todos and subtodos', function(done) {
     graphql()
       .set('Authorization', 'Bearer ' + jwt)
       .send({ 
         query: `
           {
-            items{
+            todos{
               id
-              name
-              subitems{
+              todo
+              subtodos{
                 id
-                name
+                subtodo
               }
             }
           }
@@ -41,10 +42,10 @@ describe('read', function() {
       .expect('Content-Type', /json/)
       .expect(200, done)
       .expect( r => {
-        r.body.data.items.length.should.equal(4);
-        r.body.data.items[0].subitems.length.should.equal(2);
-        r.body.data.items[0].name.should.equal("item_1");
-        r.body.data.items[0].subitems[1].name.should.equal("subitem_2");
+        r.body.data.todos.length.should.equal(4);
+        r.body.data.todos[0].subtodos.length.should.equal(2);
+        r.body.data.todos[0].name.should.equal("item_1");
+        r.body.data.todos[0].subtodos[1].name.should.equal("subitem_2");
       })
       
   });
