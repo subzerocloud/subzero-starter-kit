@@ -7,22 +7,20 @@ describe('read', function() {
   
   it('basic', function(done) {
     rest_service()
-      .get('/items?row_id=eq.1')
+      .get('/todos?select=id,todo')
       .expect('Content-Type', /json/)
       .expect(200, done)
       .expect( r => {
-        r.body.length.should.equal(1);
-        r.body[0].row_id.should.equal(1);
+        r.body.length.should.equal(3);
       })
   });
 
   it('by primary key', function(done) {
     rest_service()
-      .get('/items/1?select=row_id,name')
+      .get('/todos/1?select=id,todo')
       .expect(200, done)
       .expect( r => {
-        r.body.row_id.should.equal(1);
-        r.body.name.should.equal('item_1');
+        r.body.todo.should.equal('item_1');
       })
   });
 

@@ -8,13 +8,13 @@ describe('auth', function() {
   it('can login', function(done) {
     graphql()
       .send({ 
-        query: `{ login(email:"alice@email.com", password: "pass"){ email } }`
+        query: `{ login(email:"alice@email.com", password: "pass"){ me } }`
       })
       .expect(200, done)
       .expect('Content-Type', /json/)
       .expect('set-cookie', /SESSIONID/)
       .expect(r => {
-        r.body.data.login.email.should.equal('alice@email.com');
+        r.body.data.login.me.email.should.equal('alice@email.com');
 
       })
   });
