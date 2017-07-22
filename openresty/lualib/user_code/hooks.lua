@@ -63,7 +63,7 @@ end
 
 -- Hook function to remove the undesired filter capabilities from nodes
 local function argument_filter(parent_entity, entity, column, operator)
-    if (entity == 'items' or entity == 'subitems') and column == 'name' and operator == 'like' then
+    if entity == 'todos' and column == 'todo' and operator == 'like' then
         return false
     end
     return true
