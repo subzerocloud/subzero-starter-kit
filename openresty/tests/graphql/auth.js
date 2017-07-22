@@ -3,7 +3,7 @@ var graphql = graphql_simple
 
 describe('auth', function() {
   
-  after(function(done){ resetdb(); done(); });
+  before(function(done){ resetdb(); done(); });
   
   it('can login', function(done) {
     graphql()

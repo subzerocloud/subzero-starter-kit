@@ -4,7 +4,7 @@ const should = require("should");
 
 describe('read', function() {
 
-  after(function(done){ resetdb(); done(); });
+  before(function(done){ resetdb(); done(); });
 
   it('can get all todos', function(done) {
     graphql()

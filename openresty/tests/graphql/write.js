@@ -3,7 +3,7 @@ var graphql = graphql_simple
 
 describe('write', function() {
 
-  after(function(done){ resetdb(); done(); });
+  before(function(done){ resetdb(); done(); });
 
 
   it('can insert one todo', function(done) {
