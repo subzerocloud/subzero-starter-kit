@@ -15,7 +15,8 @@ backends with [subZero](https://subzero.cloud/).
 ✓ [OpenResty](https://openresty.org/en/) configuration files for the reverse proxy<br>
 ✓ [RabbitMQ](https://www.rabbitmq.com/) integration through [pg-amqp-bridge](https://github.com/subzerocloud/pg-amqp-bridge)<br>
 ✓ [Lua](https://www.lua.org/) functions to hook into each stage of the HTTP request and add custom logic (integrate 3rd party systems)<br>
-✓ Debugging and live code reloading (sql/configs/lua) functionality using [subZero devtools](https://github.com/subzerocloud/devtools)<br>
+✓ Debugging and live code reloading (sql/configs/lua) functionality using [subzero-cli](https://github.com/subzerocloud/subzero-cli)<br>
+✓ Full migration management (migration files are automatically created) through [subzero-cli](https://github.com/subzerocloud/subzero-cli)/[sqitch](http://sqitch.org/)/[apgdiff](https://github.com/subzerocloud/apgdiff)<br>
 ✓ SQL unit test using [pgTAP](http://pgtap.org/)<br>
 ✓ Integration tests with [SuperTest / Mocha](https://github.com/visionmedia/supertest)<br>
 ✓ (soon) Docker files for building production images<br>
@@ -60,7 +61,17 @@ backends with [subZero](https://subzero.cloud/).
 
 Make sure that you have [Docker](https://www.docker.com/community-edition) v17 or newer installed.
 
-Clone the repo and launch the app with [Docker Compose](https://docs.docker.com/compose/):
+Setup your git repo with a reference to the upstream
+```base
+mkdir example-api
+cd example-api
+git init
+git remote add upstream https://github.com/subzerocloud/postgrest-starter-kit.git
+git fetch upstream
+git merge upstream/master
+```
+
+Launch the app with [Docker Compose](https://docs.docker.com/compose/):
 
 ```bash
 git clone --single-branch https://github.com/subzerocloud/subzero-starter-kit example-api
@@ -77,10 +88,11 @@ curl http://localhost:8080/rest/todos?select=id,todo
 
 ## Development workflow and debugging
 
-Download and install [subZero devtools](https://github.com/subzerocloud/devtools) for your OS.<br />
-Execute `sz` (of the name you used to symlink the binary) in the root of your project.<br />
-After this step you can view the logs of all the stack components (SQL queries will also be logged).
-If you edit a sql/conf/lua file in your project, the changes will immediately be applied.
+Install [subzero-cli](https://github.com/subzerocloud/subzero-cli) using `npm install -g subzero-cli`.
+
+Execute `subzero dashboard` in the root of your project.<br />
+After this step you can view the logs of all the stack components (SQL queries will also be logged) and
+if you edit a sql/conf/lua file in your project, the changes will immediately be applied.
 
 
 Try a GraphQL query in the integrated GraphiQL IDE at [http://localhost:8080/graphiql](http://localhost:8080/graphiql)
@@ -112,8 +124,7 @@ npm test                        # Run all tests (db, rest)
 
 ## Keeping Up-to-Date
 
-If you keep the original Git history after  forking and cloning this repo, you can always fetch and merge
-the recent updates back into your project by running:
+You can always fetch and merge the recent updates back into your project by running:
 
 ```bash
 git remote add upstream https://github.com/subzerocloud/subzero-starter-kit.git
@@ -123,25 +134,14 @@ git merge upstream/master
 
 ## Deployment
 
-We are currently working on a CloudFormation based stack setup [here](/pull/5)
-
-There are two stages when going to production.
-
-#### Deploying your database code
-In production you should use [RDS](https://aws.amazon.com/rds/postgresql/) or a similar service.
-We'll soon have examples on how to migrate SQL code from dev to production
-
-#### Deploying PostgREST and OpenResty
-We recommend deploying both components (OpenResty/PostgREST) as Docker containers.
-You can use [EC2 Container Service](https://aws.amazon.com/ecs/) to help solve a lot of devops problems when deploying containers.
-We'll soon provide task definition templates. For PostgREST you can use the official image in production. For OpenResty you will build your own image that is based on the official one but includes all your custom configurations and files.
+More information in [Production Infrastructure (AWS ECS+RDS)](https://github.com/subzerocloud/postgrest-starter-kit/wiki/Production-Infrastructure)
 
 ## Contributing
 
 Anyone and everyone is welcome to contribute.
 
 ## Support and Documentation
-* [Wiki](https://github.com/subzerocloud/postgrest-starter-kit/wiki) — a more detailed view of the architecture
+* [Wiki](https://github.com/subzerocloud/postgrest-starter-kit/wiki) — comprehensive documentation
 * [PostgREST API Referrance](https://postgrest.com/en/stable/api.html)
 * [PostgreSQL Manual](https://www.postgresql.org/docs/current/static/index.html)
 * [Slack](https://slack.subzero.cloud/) — Watch announcements, share ideas and feedback
