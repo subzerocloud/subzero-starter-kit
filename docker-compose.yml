@@ -31,7 +31,7 @@ services:
   # PostgREST instance, is responsible for communicating with the database
   # and providing a REST api, (almost) every request that is sent to the database goes through it
   postgrest:
-    image: postgrest/postgrest
+    image: subzerocloud/postgrest
     ports:
       - "3000:3000"
     links:
