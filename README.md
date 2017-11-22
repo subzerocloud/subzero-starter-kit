@@ -22,7 +22,6 @@ backends with [subZero](https://subzero.cloud/).
 ✓ Integration tests with [SuperTest / Mocha](https://github.com/visionmedia/supertest)<br>
 ✓ Docker files for building production images<br>
 ✓ Community support on [Slack](https://slack.subzero.cloud/)<br>
-✓ Compatible with [subZero Starter Kit](https://github.com/subzerocloud/subzero-starter-kit) if you decide you need a GraphQL API with no additional work<br>
 
 
 ## Directory Layout
