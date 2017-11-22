@@ -18,5 +18,20 @@ describe('auth', function() {
 
       })
   });
+
+  it('signup', function(done) {
+
+    graphql()
+      .send({ 
+        query: `mutation { signup( name: "John Doe", email:"john@email.com", password: "pass"){ me } }`
+      })
+      .expect(200, done)
+      .expect('Content-Type', /json/)
+      .expect(r => {
+        console.log(r.body);
+        r.body.data.signup.me.email.should.equal('john@email.com');
+
+      })
+  });
   
 });
