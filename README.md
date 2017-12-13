@@ -46,7 +46,7 @@ backends with [subZero](https://subzero.cloud/).
 │   └── entrypoint.sh         # Custom entrypoint
 ├── tests                     # Tests for all the components
 │   ├── db                    # pgTap tests for the db
-│   ├── graphql           # GraphQL interface tests
+│   ├── graphql               # GraphQL interface tests
 │   └── rest                  # REST interface tests
 ├── docker-compose.yml        # Defines Docker services, networks and volumes
 └── .env                      # Project configurations
