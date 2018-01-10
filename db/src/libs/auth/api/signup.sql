@@ -27,5 +27,5 @@ begin
     return result;
 end
 $$ security definer language plpgsql;
-
+-- by default all functions are accessible to the public, we need to remove that and define our specific access rules
 revoke all privileges on function signup(text, text, text) from public;

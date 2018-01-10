@@ -6,9 +6,9 @@ set search_path = api, public;
 -- it is needed for the definition of the RLS policies
 drop role if exists api;
 create role api;
-grant api to current_user; -- this is a workaround for RDS where the master user does not have SUPERUSER priviliges  
+grant api to current_user; -- this is a workaround for RDS where the master user does not have SUPERUSER priviliges
 
--- redifine this type to control the user properties returned by auth endpoints
+-- redefine this type to control the user properties returned by auth endpoints
 \ir ../libs/auth/api/user_type.sql
 -- include all auth endpoints
 \ir ../libs/auth/api/all.sql
