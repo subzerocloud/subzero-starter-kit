@@ -1,6 +1,6 @@
 # subZero GraphQL/REST API Starter Kit
 
-**subZero Starter Kit** is a boilerplate and tooling for authoring **data API**
+Base project and tooling for authoring **data API**
 backends with [subZero](https://subzero.cloud/).
 
 ![subZero Starter Kit](https://raw.githubusercontent.com/wiki/subzerocloud/postgrest-starter-kit/images/postgrest-starter-kit.gif "subZero Starter Kit")
