@@ -59,6 +59,7 @@ services:
     links:
       - db:db
       - postgrest:postgrest
+      - rabbitmq:rabbitmq
     entrypoint: /entrypoint.sh
     environment:
       - JWT_SECRET=${JWT_SECRET}
@@ -72,6 +73,8 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
       - RELAY_ID_COLUMN=${RELAY_ID_COLUMN}
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
     volumes:
       - "./openresty/entrypoint.sh:/entrypoint.sh"
       - "./openresty/nginx/conf/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf"
@@ -100,7 +103,15 @@ services:
       - "5671:5671"
       - "5672:5672"
       - "15672:15672"
+      - "15674:15674"
+    entrypoint: /entrypoint.sh
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+      - RABBITMQ_AUTH_ENDPOINT=${RABBITMQ_AUTH_ENDPOINT}
+    volumes:
+      - "./rabbitmq/entrypoint.sh:/entrypoint.sh"
+      - "./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins"
+      - "./rabbitmq/custom.config:/etc/rabbitmq/custom.config.template"
+      
 
