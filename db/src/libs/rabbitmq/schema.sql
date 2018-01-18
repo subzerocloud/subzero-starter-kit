@@ -21,9 +21,11 @@ create or replace function rabbitmq.on_row_change() returns trigger as $$
     excluded_columns text[];
     col text;
   begin
+    -- we use the '.user-10.' part of the routing key to select which user should be able to receive these events.
     routing_key := 'row_change'
                    '.table-'::text || TG_TABLE_NAME::text || 
-                   '.event-'::text || TG_OP::text;
+                   '.event-'::text || TG_OP::text ||
+                   '.user-'::text  || request.user_id()::text;
     if (TG_OP = 'DELETE') then
         row := row_to_json(old)::jsonb;
     elsif (TG_OP = 'UPDATE') then
