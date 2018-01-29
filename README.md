@@ -15,6 +15,7 @@ backends with [subZero](https://subzero.cloud/).
 ✓ [PostgreSQL](https://www.postgresql.org/) database schema boilerplate with authentication and authorization flow<br>
 ✓ [OpenResty](https://openresty.org/en/) configuration files for the reverse proxy<br>
 ✓ [RabbitMQ](https://www.rabbitmq.com/) integration through [pg-amqp-bridge](https://github.com/subzerocloud/pg-amqp-bridge)<br>
+✓ Live events (with authentication/authorization) through RabbitMQ [WebSTOMP plugin](https://www.rabbitmq.com/web-stomp.html)<br>
 ✓ [Lua](https://www.lua.org/) functions to hook into each stage of the HTTP request and add custom logic (integrate 3rd party systems)<br>
 ✓ Debugging and live code reloading (sql/configs/lua) functionality using [subzero-cli](https://github.com/subzerocloud/subzero-cli)<br>
 ✓ Full migration management (migration files are automatically created) through [subzero-cli](https://github.com/subzerocloud/subzero-cli)/[sqitch](http://sqitch.org/)/[apgdiff](https://github.com/subzerocloud/apgdiff)<br>
@@ -56,24 +57,47 @@ backends with [subZero](https://subzero.cloud/).
 
 ## Installation
 
-Make sure that you have [Docker](https://www.docker.com/community-edition) v17 or newer installed.
+### Docker
+All subZero components are packaged as docker images, as such, the first thing to do is to install [Docker](https://www.docker.com/community-edition) for you platform.
 
-Setup your git repo with a reference to the upstream
-```base
-mkdir example-api && cd example-api
-git clone https://github.com/subzerocloud/subzero-starter-kit.git .
-git remote rename origin upstream && git branch --unset-upstream
+### subzero-cli
+To aid with the development process, we have build a set of command line tools to help you with various stages of your project.
+
+Install `subzero-cli` by running
+```sh
+docker pull subzerocloud/subzero-cli-tools
+npm install -g subzero-cli
+subzero --version
 ```
 
-Launch the app with [Docker Compose](https://docs.docker.com/compose/):
+### Create a New Project
+
+subzero-cli provides you with a base-project command that lets you create a new project structure:
 
 ```bash
-docker-compose up -d            # Launch Docker containers
+subzero base-project
+
+? Enter the directory path where you want to create the project .
+? Choose the starter kit (Use arrow keys)
+❯ subzero-starter-kit (REST & GraphQL) 
+  postgrest-starter-kit (REST) 
 ```
 
-The API server must become available at [http://localhost:8080/rest](http://localhost:8080/rest) and [http://localhost:8080/graphql](http://localhost:8080/graphql) endpoints for REST and GraphQL respectively.
+After the files have been created, you can bring up your application (API).
+In the root folder of application, run the docker-compose command
 
-Try a simple REST request.
+```bash
+docker-compose up -d
+```
+
+The API server will become available at the following endpoints:
+
+- REST [http://localhost:8080/rest](http://localhost:8080/rest)
+- GraphiQL IDE [http://localhost:8080/graphiql](http://localhost:8080/graphiql)
+- GraphQL Simple Schema [http://localhost:8080/graphql/simple](http://localhost:8080/graphql/simple)
+- GraphQL Relay Schema [http://localhost:8080/graphql/relay](http://localhost:8080/graphql/relay)
+
+Try a simple request
 
 ```bash
 curl http://localhost:8080/rest/todos?select=id,todo
@@ -91,11 +115,6 @@ Try a GraphQL query in the integrated GraphiQL IDE at [http://localhost:8080/gra
 ```
 
 ## Development workflow and debugging
-
-Install [subzero-cli](https://github.com/subzerocloud/subzero-cli) using with
-```
-npm install -g subzero-cli
-```
 
 Execute `subzero dashboard` in the root of your project.<br />
 After this step you can view the logs of all the stack components (SQL queries will also be logged) and
@@ -118,22 +137,14 @@ npm run test_rest               # Run rest integration tests
 npm run test_graphql            # Run graphql integration tests
 ```
 
-## Keeping Up-to-Date
-
-You can always fetch and merge the recent updates back into your project by running:
-
-```bash
-git fetch upstream
-git merge upstream/master
-```
-
 ## Deployment to your own infrastructure
 
-More information in [Production Infrastructure (AWS ECS+RDS)](https://github.com/subzerocloud/postgrest-starter-kit/wiki/Production-Infrastructure) and [Pushing to Production](https://github.com/subzerocloud/postgrest-starter-kit/wiki/Pushing-to-Production)
+[Amazon ECS+RDS](http://docs.subzero.cloud/production-infrastructure/aws-ecs-rds/)
+[Amazon Fargate+RDS](http://docs.subzero.cloud/production-infrastructure/aws-fargate-rds/)
 
 ## Deployment to subZero cloud
-
- Comming soon [Request Invite](https://subzero.cloud)
+ 
+[Request Invite](https://subzero.cloud) then follow the [steps](http://docs.subzero.cloud/production-infrastructure/subzero-cloud/)
 
 ## Contributing
 
@@ -149,6 +160,7 @@ Anyone and everyone is welcome to contribute.
 ## License
 
 Copyright © 2017-present subZero Cloud, LLC.<br />
-This source code is licensed under [MIT](https://github.com/subzerocloud/subzero-starter-kit/blob/master/LICENSE.txt) license<br />
+This source code in this repository is licensed under [MIT](https://github.com/subzerocloud/subzero-starter-kit/blob/master/LICENSE.txt) license<br />
+Components implementing the GraphQL interface (customized PostgREST and OpenResty docker images) are available under a [commercial license](https://subzero.cloud)<br />
 The documentation to the project is licensed under the [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/) license.
 
