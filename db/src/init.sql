@@ -17,7 +17,7 @@ set client_min_messages to warning;
 begin;
 
 \echo # Loading dependencies
--- functions for storing different settins in a table
+-- functions for storing different settings in a table
 \ir libs/settings/schema.sql
 -- functions implementing authentication (parts of the lib are included in data and api schema)
 \ir libs/auth/schema.sql
