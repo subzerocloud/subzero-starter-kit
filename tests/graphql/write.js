@@ -4,7 +4,7 @@ var graphql = graphql_simple
 describe('write', function() {
 
   before(function(done){ resetdb(); done(); });
-
+  after(function(done){ resetdb(); done(); });
 
   it('can insert one todo', function(done) {
     graphql()
