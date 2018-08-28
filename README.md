@@ -124,7 +124,7 @@ if you edit a sql/conf/lua file in your project, the changes will immediately be
 
 ## Testing
 
-The starter kit comes with a testing infrastructure setup. 
+The starter kit comes with a testing infrastructure setup.
 You can write pgTAP tests that run directly in your database, useful for testing the logic that resides in your database (user privileges, Row Level Security, stored procedures).
 Integration tests are written in JavaScript.
 
@@ -150,7 +150,7 @@ Anyone and everyone is welcome to contribute.
 
 ## Support and Documentation
 * [Documentation](https://docs.subzero.cloud)
-* [PostgREST API Referrance](https://postgrest.com/en/stable/api.html)
+* [PostgREST API Referance](https://postgrest.com/en/stable/api.html)
 * [PostgreSQL Manual](https://www.postgresql.org/docs/current/static/index.html)
 * [Slack](https://slack.subzero.cloud/) — Watch announcements, share ideas and feedback
 * [GitHub Issues](https://github.com/subzerocloud/subzero-starter-kit/issues) — Check open issues, send feature requests
