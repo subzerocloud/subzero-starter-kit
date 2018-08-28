@@ -15,7 +15,7 @@ backends with [subZero](https://subzero.cloud/).
 ✓ [PostgreSQL](https://www.postgresql.org/) database schema boilerplate with authentication and authorization flow<br>
 ✓ [OpenResty](https://openresty.org/en/) configuration files for the reverse proxy<br>
 ✓ [RabbitMQ](https://www.rabbitmq.com/) integration through [pg-amqp-bridge](https://github.com/subzerocloud/pg-amqp-bridge)<br>
-✓ Live events (with authentication/authorization) through RabbitMQ [WebSTOMP plugin](https://www.rabbitmq.com/web-stomp.html)<br>
+(https://www.rabbitmq.com/web-stomp.html)<br>
 ✓ [Lua](https://www.lua.org/) functions to hook into each stage of the HTTP request and add custom logic (integrate 3rd party systems)<br>
 ✓ Debugging and live code reloading (sql/configs/lua) functionality using [subzero-cli](https://github.com/subzerocloud/subzero-cli)<br>
 ✓ Full migration management (migration files are automatically created) through [subzero-cli](https://github.com/subzerocloud/subzero-cli)/[sqitch](http://sqitch.org/)/[apgdiff](https://github.com/subzerocloud/apgdiff)<br>
@@ -23,7 +23,8 @@ backends with [subZero](https://subzero.cloud/).
 ✓ Integration tests with [SuperTest / Mocha](https://github.com/visionmedia/supertest)<br>
 ✓ Docker files for building production images<br>
 ✓ Community support on [Slack](https://slack.subzero.cloud/)<br>
-
+✓ Custom PostgREST binary that creates prepared statements instead of inline queries<br>
+✓ Live events (with authentication/authorization) through RabbitMQ [WebSTOMP plugin](https://www.rabbitmq.com/web-stomp.html)<br>
 
 ## Directory Layout
 
@@ -92,10 +93,10 @@ docker-compose up -d
 
 The API server will become available at the following endpoints:
 
-- REST [http://localhost:8080/rest](http://localhost:8080/rest)
-- GraphiQL IDE [http://localhost:8080/graphiql](http://localhost:8080/graphiql)
-- GraphQL Simple Schema [http://localhost:8080/graphql/simple](http://localhost:8080/graphql/simple)
-- GraphQL Relay Schema [http://localhost:8080/graphql/relay](http://localhost:8080/graphql/relay)
+- REST [http://localhost:8080/rest/](http://localhost:8080/rest/)
+- GraphiQL IDE [http://localhost:8080/graphiql/](http://localhost:8080/graphiql/)
+- GraphQL Simple Schema [http://localhost:8080/graphql/simple/](http://localhost:8080/graphql/simple/)
+- GraphQL Relay Schema [http://localhost:8080/graphql/relay/](http://localhost:8080/graphql/relay/)
 
 Try a simple request
 
@@ -103,7 +104,7 @@ Try a simple request
 curl http://localhost:8080/rest/todos?select=id,todo
 ```
 
-Try a GraphQL query in the integrated GraphiQL IDE at [http://localhost:8080/graphiql](http://localhost:8080/graphiql)
+Try a GraphQL query in the integrated GraphiQL IDE at [http://localhost:8080/graphiql/](http://localhost:8080/graphiql/)
 
 ```
 {
@@ -137,21 +138,18 @@ npm run test_rest               # Run rest integration tests
 npm run test_graphql            # Run graphql integration tests
 ```
 
-## Deployment to your own infrastructure
-
-[Amazon ECS+RDS](http://docs.subzero.cloud/production-infrastructure/aws-ecs-rds/)
-[Amazon Fargate+RDS](http://docs.subzero.cloud/production-infrastructure/aws-fargate-rds/)
-
-## Deployment to subZero cloud
- 
-[Request Invite](https://subzero.cloud) then follow the [steps](http://docs.subzero.cloud/production-infrastructure/subzero-cloud/)
+## Deployment
+* [subZero Cloud](http://docs.subzero.cloud/production-infrastructure/subzero-cloud/) ([invite](https://subzero.cloud) required)
+* [Amazon ECS+RDS](http://docs.subzero.cloud/production-infrastructure/aws-ecs-rds/)
+* [Amazon Fargate+RDS](http://docs.subzero.cloud/production-infrastructure/aws-fargate-rds/)
+* [Dedicated Linux Server](https://docs.subzero.cloud/production-infrastructure/ubuntu-server/)
 
 ## Contributing
 
 Anyone and everyone is welcome to contribute.
 
 ## Support and Documentation
-* [Wiki](https://github.com/subzerocloud/postgrest-starter-kit/wiki) — comprehensive documentation
+* [Documentation](https://docs.subzero.cloud)
 * [PostgREST API Referrance](https://postgrest.com/en/stable/api.html)
 * [PostgreSQL Manual](https://www.postgresql.org/docs/current/static/index.html)
 * [Slack](https://slack.subzero.cloud/) — Watch announcements, share ideas and feedback
