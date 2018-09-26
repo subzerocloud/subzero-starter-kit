@@ -56,24 +56,16 @@ backends with [subZero](https://subzero.cloud/).
 ```
 
 
-## Installation
 
-### Docker
-All subZero components are packaged as docker images, as such, the first thing to do is to install [Docker](https://www.docker.com/community-edition) for you platform.
+## Installation 
 
-### subzero-cli
-To aid with the development process, we have build a set of command line tools to help you with various stages of your project.
-
-Install `subzero-cli` by running
-```sh
-docker pull subzerocloud/subzero-cli-tools
-npm install -g subzero-cli
-subzero --version
-```
+### Prerequisites
+ ✓ [Docker](https://www.docker.com)
+ ✓ [Node.js](https://nodejs.org/en/)
+ ✓ [subZero CLI](https://github.com/subzerocloud/subzero-cli#install)
 
 ### Create a New Project
-
-subzero-cli provides you with a base-project command that lets you create a new project structure:
+subzero-cli provides you with a `base-project` command that lets you create a new project structure:
 
 ```bash
 subzero base-project
