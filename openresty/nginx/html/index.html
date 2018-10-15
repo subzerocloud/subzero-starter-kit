@@ -23,6 +23,8 @@
         var port = location.port?':'+location.port:'';
         var d = new Date();
         d.setDate(d.getDate() + 1);
+        var isWin = navigator.platform.toUpperCase() == "WIN32";
+        var separator = isWin ? '^' : '\\';
         // this cookie will signal to the api our logged in state
         // we were able to generate and hardcode it here (a JWT that does not expire) because we know the JWT secret value used by the server (.env file)
         // this cookie will be set by the backend if you call the login endpoint of the api, with rest or graphql
@@ -35,10 +37,10 @@
         var client = null
         document.getElementById('add_todo_call').appendChild(
             document.createTextNode(
-                "curl -s -X POST \\\n" +
-                "-H \"Authorization: Bearer "+token+"\" \\\n" +
-                "-H \"Content-Type: application/json\" \\\n" +
-                "-d '{\"todo\":\"I should learn GraphQL\"}' \\\n" +
+                "curl -s -X POST " + separator + "\n" +
+                "-H \"Authorization: Bearer "+token+"\" "  + separator + "\n" +
+                "-H \"Content-Type: application/json\" " + separator + "\n" +
+                "-d \"{\\\"todo\\\":\\\"I should learn GraphQL\\\"}\" " + separator + "\n" +
                 "http://"+host+port+"/rest/todos"
             )
         );
