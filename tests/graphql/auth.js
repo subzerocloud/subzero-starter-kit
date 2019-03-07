@@ -1,5 +1,6 @@
-var {graphql_simple, graphql_relay, jwt, resetdb} = require('../common.js');
-var graphql = graphql_simple
+import { graphql_simple, resetdb } from '../common'
+import should from 'should'
+const graphql = graphql_simple
 
 describe('auth', function() {
   

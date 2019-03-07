@@ -8,7 +8,7 @@ describe('write', function() {
 
   it('can insert one todo', function(done) {
     graphql()
-      .set('Authorization', 'Bearer ' + jwt)
+      .withRole('webuser')
       .send({ 
         //query: `{ todos { id name } }`
         query: `
@@ -35,7 +35,7 @@ describe('write', function() {
 
   it('can insert multiple', function(done) {
     graphql()
-      .set('Authorization', 'Bearer ' + jwt)
+      .withRole('webuser')
       .send({ 
         //query: `{ todos { id name } }`
         query: `
@@ -64,7 +64,7 @@ describe('write', function() {
   // TODO!!!!!!!!!  bad fail 500 if the id is not found
   it('can update one todo', function(done) {
     graphql()
-      .set('Authorization', 'Bearer ' + jwt)
+      .withRole('webuser')
       .send({ 
         //query: `{ todos { id name } }`
         query: `
@@ -91,7 +91,7 @@ describe('write', function() {
 
   it('can update multiple todos', function(done) {
     graphql()
-      .set('Authorization', 'Bearer ' + jwt)
+      .withRole('webuser')
       .send({ 
         //query: `{ todos { id name } }`
         query: `
@@ -119,7 +119,7 @@ describe('write', function() {
 
   it('can delete one todo', function(done) {
     graphql()
-      .set('Authorization', 'Bearer ' + jwt)
+      .withRole('webuser')
       .send({ 
         //query: `{ todos { id name } }`
         query: `

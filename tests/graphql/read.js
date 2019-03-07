@@ -1,6 +1,6 @@
-var {graphql_simple, graphql_relay, jwt, resetdb} = require('../common.js');
-var graphql = graphql_simple
-const should = require("should");
+import { graphql_simple, resetdb } from '../common'
+import should from 'should'
+const graphql = graphql_simple
 
 describe('read', function() {
 
@@ -9,7 +9,7 @@ describe('read', function() {
 
   it('can get all todos', function(done) {
     graphql()
-      .set('Authorization', 'Bearer ' + jwt)
+      .withRole('webuser')
       .send({ 
         query: `{ todos { id todo } }`
       })
@@ -24,7 +24,7 @@ describe('read', function() {
 
   it.skip('can get todos and subtodos', function(done) {
     graphql()
-      .set('Authorization', 'Bearer ' + jwt)
+      .withRole('webuser')
       .send({ 
         query: `
           {
