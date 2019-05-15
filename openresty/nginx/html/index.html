@@ -2,92 +2,19 @@
 <html>
 <head>
 <title>Welcome to subZero Starter Kit!</title>
+<link rel='stylesheet' href='https://cdn.jsdelivr.net/gh/kognise/water.css@latest/dist/light.min.css'>
 <style>
     body {
-        
-        font-family: Tahoma, Verdana, Arial, sans-serif;
         width: 35em;
         margin: 0 auto;
     }
-    #logs, #received {
-        height: 100px;
-        border: 1px solid #ccc;
-        overflow: auto;
-        padding: 5px;
-    }
 </style>
-<script src="stomp.js"></script>
 <script>
     function onLoad(){
-        var host = window.location.hostname
-        var port = location.port?':'+location.port:'';
-        var d = new Date();
-        d.setDate(d.getDate() + 1);
-        var isWin = navigator.platform.toUpperCase() == "WIN32";
-        var separator = isWin ? '^' : '\\';
-        // this cookie will signal to the api our logged in state
-        // we were able to generate and hardcode it here (a JWT that does not expire) because we know the JWT secret value used by the server (.env file)
-        // this cookie will be set by the backend if you call the login endpoint of the api, with rest or graphql
-        var user_id = 1;
-        var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxLCJyb2xlIjoid2VidXNlciJ9.uSsS2cukBlM6QXe4Y0H90fsdkJSGcle9b7p_kMV1Ymk"
-        document.cookie = "SESSIONID="+token+";"
-                        + "expires="+ d.toUTCString() + ";"
-                        + "path=/";
-        
-        var client = null
-        document.getElementById('add_todo_call').appendChild(
-            document.createTextNode(
-                "curl -s -X POST " + separator + "\n" +
-                "-H \"Authorization: Bearer "+token+"\" "  + separator + "\n" +
-                "-H \"Content-Type: application/json\" " + separator + "\n" +
-                "-d \"{\\\"todo\\\":\\\"I should learn GraphQL\\\"}\" " + separator + "\n" +
-                "http://"+host+port+"/rest/todos"
-            )
-        );
-        var pipe = function(el_id) {
-            var div  = document.getElementById(el_id);
-            var print = function(m, p) {
-                p = (p === undefined) ? '' : JSON.stringify(p);
-                div.appendChild(document.createTextNode(m + ' ' + p + "\n"));
-                div.scrollTop = div.scrollHeight;
-            };
-            return print;
-        };
-        var print_received = pipe('received');
-        var on_connect = function(x) {
-            var exchange = 'amq.topic'
-            var routing_key = '#.user-'+user_id+'.#'
-            var subscription = client.subscribe("/exchange/" + exchange + "/" + routing_key, function(message) {
-                print_received(message.headers.destination)
-                print_received(message.body);
-            });
-        };
-        var do_connect = function(c){
-            /*
-            the username/pasword parameters here are hardcoded and ignored because the connection endpoint is configured
-            to look at the SESSIONID cookie and translate that on the fly to an Authorization header which in turn
-            RabbitMQ is configured to inspect and ignore user/pass in the connection frame.
-            It is possible to have all login methods at the same time (header/cookie/connection frame)
-            */
-            client = Stomp.client('ws://' + host + port +'/rabbitmq/ws');
-            client.debug = pipe('logs');      
-            client.connect('user', 'ignored', on_connect, on_error, '/');
+        var n = document.getElementsByClassName('location')
+        for (var i = 0; i < n.length; i++) {
+            n[i].innerHTML = window.location;
         }
-        var on_error =  function(e) {
-            //aggressive reconnect
-            //a lot can be improved here, this is just an example
-            if( 
-                (typeof e == 'object' && e.body.match(/Access refused/g)) ||
-                (typeof e == 'string' && e.match(/Lost connection/g))
-            ){
-                setTimeout(function() {
-                client.disconnect()
-                do_connect()
-                }, 5 * 1000);
-            }
-        };
-
-        do_connect();
     }
 </script>
 </head>
@@ -95,28 +22,27 @@
 
     <h1>subZero Starter Kit!</h1>
 
-    <p>Your API is up and running. Try this in a terminal.</p>
-    <p><code>curl <script>document.write(window.location)</script>rest/todos?select=id,todo</code></p>
+    <p>Your API is up and running.</p>
+
+    <h2>API Endpoints</h2>
+    <ul>
+        <li><span class="location"></span>rest/</li>
+        <li><span class="location"></span>graphql/simple/</li>
+        <li><span class="location"></span>graphql/relay/</li>
+    </ul>
+
+    <h2>Explore</h2>
+    <code>curl <span class="location"></span>rest/todos?select=id,todo</code>
     <p>Give <a href="/graphiql/">GraphiQL IDE</a> a spin.</p>
 
     <h2>Support and Documentation</h2>
     <ul>
-    <li><a href="http://docs.subzero.cloud">Documentation</a></li>
+    <li><a href="http://docs.subzero.cloud">subZero Documentation</a></li>
     <li><a href="https://postgrest.com/en/stable/api.html">PostgREST API Referance</a></li>
     <li><a href="https://www.postgresql.org/docs/current/static/index.html">PostgreSQL Manual</a></li>
     <li><a href="https://slack.subzero.cloud/">Slack</a> — Get help, share ideas and feedback</li>
     <li><a href="https://github.com/subzerocloud/subzero-starter-kit/issues">GitHub Issues</a> — Check open issues, send feature requests</li>
     </ul>
-
-    <h2>Live events</h2>
-    <b>Try this call in a terminal and see the events below</b>
-    <pre id="add_todo_call"></pre>
-    <h2>Received Events</h2>
-    <pre id="received"></pre>
-
-
-    <h2>Logs</h2>
-    <pre id="logs"></pre>
 
     Developed by <a href="https://subzero.cloud">subZero</a>
 
