@@ -1,3 +1,4 @@
+local cache = require 'cache'
 -- this module will transparently turn your jwt based auth mechanism
 -- into a session cookie based one
 -- aditionally it will periodically refresh the jwt token to extend the session lifetime
@@ -19,6 +20,7 @@ session_cookie.configure({
     -- extension = nil,
 })
 
+local cache = require 'cache'
 -- ================ GraphQL schema generation hooks =======================
 -- Override the auto generated type names for the entities (views/tables)
 -- If the function returns nil, subzero will come up with a name for you
@@ -78,10 +80,15 @@ end
 local function on_rest_request()
     -- print "on_rest_request called"
     session_cookie.run()
+    cache.compute_cache_key()
 end
 
 local function before_rest_response()
     -- print "before_rest_response called"
+    cache.cache_request()
+    if method == 'POST' or method == 'PATCH' or method == 'DELETE' then
+        cache.invalidate_cache_tags()
+    end
 end
 
 
