@@ -78,7 +78,6 @@ local function on_init()
 end
 
 local function on_rest_request()
-    print(ngx.var.uri)
     session_cookie.run()
     cache.compute_cache_key()
 end
