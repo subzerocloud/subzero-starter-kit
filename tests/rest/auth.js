@@ -16,9 +16,9 @@ describe('auth', function () {
       .expect('Content-Type', /json/)
       .expect(200, done)
       .expect(r => {
-        // console.log(r.body)
         r.body.me.email.should.equal('alice@email.com')
-      })
+      }, done)
+      .expect('set-cookie', /SESSIONID/)
   })
 
   it('me', function (done) {

@@ -14,11 +14,11 @@ describe('auth', function() {
       })
       .expect(200, done)
       .expect('Content-Type', /json/)
-      .expect('set-cookie', /SESSIONID/)
       .expect(r => {
         r.body.data.login.me.email.should.equal('alice@email.com');
 
-      })
+      }, done)
+      .expect('set-cookie', /SESSIONID/)
   });
 
   it('signup', function(done) {

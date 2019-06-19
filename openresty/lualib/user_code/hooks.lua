@@ -7,9 +7,9 @@ local cache = require 'cache'
 local session_cookie = require 'subzero.jwt_session_cookie'
 session_cookie.configure({
     -- rest_prefix = '/internal/rest/',
-    -- login_uri = 'rpc/login',
-    -- logout_uri = 'rpc/logout' ,
-    -- refresh_uri = 'rpc/refresh_token',
+    -- login_uri = '/rpc/login',
+    -- logout_uri = '/rpc/logout' ,
+    -- refresh_uri = '/rpc/refresh_token',
     -- session_cookie_name = 'SESSIONID',
     -- session_refresh_threshold = (60*55) -- (expire - now < session_refresh_threshold),
     -- path = '/',
@@ -78,7 +78,7 @@ local function on_init()
 end
 
 local function on_rest_request()
-    -- print "on_rest_request called"
+    print(ngx.var.uri)
     session_cookie.run()
     cache.compute_cache_key()
 end
