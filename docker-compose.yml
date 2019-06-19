@@ -56,13 +56,13 @@ services:
   # to PostgREST down the stack.
   openresty:
     image: subzerocloud/openresty
+    command: ["/usr/bin/openresty", "-g", "daemon off; error_log /dev/stderr info;"]
     ports:
       - "8080:80"
     links:
       - db:db
       - postgrest:postgrest
       - rabbitmq:rabbitmq
-    entrypoint: /entrypoint.sh
     environment:
       - JWT_SECRET=${JWT_SECRET}
       - DEVELOPMENT=${DEVELOPMENT}
@@ -79,7 +79,6 @@ services:
       - RABBITMQ_HOST=${RABBITMQ_HOST}
       - RABBITMQ_PORT=${RABBITMQ_PORT}
     volumes:
-      - "./openresty/entrypoint.sh:/entrypoint.sh"
       - "./openresty/nginx/conf/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf"
       - "./openresty/nginx/conf/includes:/usr/local/openresty/nginx/conf/includes"
       - "./openresty/nginx/html:/usr/local/openresty/nginx/html"

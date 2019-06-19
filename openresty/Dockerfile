@@ -7,8 +7,5 @@
 
 FROM subzerocloud/openresty:latest
 
-COPY entrypoint.sh /entrypoint.sh
 COPY nginx /usr/local/openresty/nginx
 COPY lualib /usr/local/openresty/lualib
-
-ENTRYPOINT ["/entrypoint.sh"]
