@@ -1,3 +1,4 @@
+local utils = require('utils')
 -- call body postprocess hook function
 -- to trigger this code, one would have these lines in one of 
 -- the hooks (on_rest_request, before_rest_response)

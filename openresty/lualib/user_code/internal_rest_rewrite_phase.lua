@@ -1,3 +1,4 @@
+local hooks = require("hooks")
 -- support /endpoint/:id url style
 local m, err = ngx.re.match(ngx.var.uri, "^/([a-z_]+)/([0-9]+)")
 if m then
