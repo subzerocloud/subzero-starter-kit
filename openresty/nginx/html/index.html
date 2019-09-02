@@ -8,6 +8,10 @@
         width: 35em;
         margin: 0 auto;
     }
+    #explore a {
+        text-align: center;
+        display: inline-block;
+    }
 </style>
 <script>
     function onLoad(){
@@ -24,6 +28,16 @@
 
     <p>Your API is up and running.</p>
 
+
+    <h2>Explore</h2>
+    <table id="explore">
+        <tr>
+            <td><a href="explore/rest.html"><img src="explore/swagger.png" /><br />REST</a></td>
+          
+            <td><a href="explore/graphql.html"><img src="explore/graphql.png" /><br />GraphQL</a></td>
+        </tr>
+    </table>
+
     <h2>API Endpoints</h2>
     <ul>
         <li><span class="location"></span>rest/</li>
@@ -31,9 +45,7 @@
         <li><span class="location"></span>graphql/relay/</li>
     </ul>
 
-    <h2>Explore</h2>
-    <code>curl <span class="location"></span>rest/todos?select=id,todo</code>
-    <p>Give <a href="/graphiql/">GraphiQL IDE</a> a spin.</p>
+    
 
     <h2>Support and Documentation</h2>
     <ul>
