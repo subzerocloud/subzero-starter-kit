@@ -8,11 +8,12 @@ drop role if exists api;
 create role api;
 grant api to current_user; -- this is a workaround for RDS where the master user does not have SUPERUSER priviliges  
 
--- redifine this type to control the user properties returned by auth endpoints
-\ir ../libs/auth/api/user_type.sql
--- include all auth endpoints
-\ir ../libs/auth/api/all.sql
 
 -- our endpoints
+create type customer as (id int, name text, email text, role text);
+\ir login.sql
+\ir refresh_token.sql
+\ir signup.sql
+\ir me.sql
 \ir todos.sql
 \ir search_todos.sql

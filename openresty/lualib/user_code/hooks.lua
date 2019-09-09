@@ -1,26 +1,15 @@
 local cache = require 'cache'
--- this module will transparently turn your jwt based auth mechanism
--- into a session cookie based one
--- aditionally it will periodically refresh the jwt token to extend the session lifetime
--- for why this is a good idea when it comes to browsers, check out this article
--- https://stormpath.com/blog/where-to-store-your-jwts-cookies-vs-html5-web-storage
-local session_cookie = require 'subzero.jwt_session_cookie'
-session_cookie.configure({
-    -- rest_prefix = '/internal/rest/',
-    -- login_uri = '/rpc/login',
-    -- logout_uri = '/rpc/logout' ,
-    -- refresh_uri = '/rpc/refresh_token',
-    -- session_cookie_name = 'SESSIONID',
-    -- session_refresh_threshold = (60*55) -- (expire - now < session_refresh_threshold),
-    -- path = '/',
-    -- domain = nil,
-    -- secure = false,
-    -- httponly = true,
-    -- samesite = "Strict",
-    -- extension = nil,
+
+-- this module will periodically refresh the jwt token from the cooke to extend the session lifetime
+local jwt_auto_refresh = require 'subzero.jwt_auto_refresh'
+jwt_auto_refresh.configure({
+    rest_prefix = '/rest',
+    refresh_uri = '/rpc/refresh_token',
+    excluded_uris = {'/rpc/login', '/rpc/logout','/rpc/signup'},
+    session_cookie_name = 'SESSIONID',
+    session_refresh_threshold = (60*55) -- used condition (expire - now) < session_refresh_threshold,
 })
 
-local cache = require 'cache'
 -- ================ GraphQL schema generation hooks =======================
 -- Override the auto generated type names for the entities (views/tables)
 -- If the function returns nil, subzero will come up with a name for you
@@ -78,7 +67,7 @@ local function on_init()
 end
 
 local function on_rest_request()
-    session_cookie.run()
+    jwt_auto_refresh.check()
     cache.compute_cache_key()
 end
 
