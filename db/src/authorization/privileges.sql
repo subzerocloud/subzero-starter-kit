@@ -44,5 +44,5 @@ grant usage on data.todo_id_seq to webuser;
 grant select, insert, update, delete on api.todos to webuser;
 
 -- anonymous users can only request specific columns from this view
-grant select (id, row_id, todo) on api.todos to anonymous;
+grant select (id, todo) on api.todos to anonymous;
 -------------------------------------------------------------------------------
