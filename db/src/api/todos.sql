@@ -8,6 +8,9 @@
 create or replace view todos as
 select id, todo, private, (owner_id = request.user_id()) as mine from data.todo t;
 
+
+-- trigger function which inserts data in case of an update or insert statement on the view api.todos
+-- into the underlying tables in schema data
 create or replace function upsert_todos_row() returns trigger as $$
 begin
     if OLD.id is not null then
@@ -30,6 +33,7 @@ begin
 end
 $$ security definer language plpgsql;
 
+-- enable trigger which overwrites insert and update actions of the view todos
 create trigger upsert_todos instead of insert or update on todos
     for each row
         execute function upsert_todos_row();
