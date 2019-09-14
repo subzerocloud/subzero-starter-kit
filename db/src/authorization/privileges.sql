@@ -10,9 +10,11 @@ grant usage on schema api to anonymous, webuser;
 -- set privileges to all the auth flow functions
 grant execute on function api.login(text,text) to anonymous;
 grant execute on function api.signup(text,text,text) to anonymous;
+grant execute on function api.logout() to anonymous;
 grant execute on function api.me() to webuser;
 grant execute on function api.login(text,text) to webuser;
 grant execute on function api.refresh_token() to webuser;
+grant execute on function api.logout() to webuser;
 
 -- define the who can access todo model data
 -- enable RLS on the table holding the data
