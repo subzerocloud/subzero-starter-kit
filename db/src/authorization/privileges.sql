@@ -5,7 +5,9 @@
 -- to the file where you defined the entity
 
 -- specify which application roles can access this api (you'll probably list them all)
-grant usage on schema api to anonymous, webuser;
+grant usage on schema api to api, anonymous, webuser;
+-- specify grants on schema data in order to manipulate data on original tables (maybe you'll also add anonymous)
+grant usage on schema data to api, webuser;
 
 -- set privileges to all the auth flow functions
 grant execute on function api.login(text,text) to anonymous;

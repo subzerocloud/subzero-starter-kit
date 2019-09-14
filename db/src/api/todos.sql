@@ -12,6 +12,8 @@ select id, todo, private, (owner_id = request.user_id()) as mine from data.todo 
 -- trigger function which inserts data in case of an update or insert statement on the view api.todos
 -- into the underlying tables in schema data
 create or replace function upsert_todos_row() returns trigger as $$
+declare
+    var_owner_id int;
 begin
     if OLD.id is not null then
         update 
@@ -20,16 +22,16 @@ begin
             todo=NEW.todo,
             private=NEW.private
         where id=OLD.id
-        returning private into NEW.private;
+        returning id, private, todo, owner_id into NEW.id, NEW.private, NEW.todo, var_owner_id;
     else
         insert into data.todo 
             (todo, private, owner_id)
         values
             (NEW.todo, NEW.private :: bool, request.user_id())
-        returning id, private into NEW.id, NEW.private;
+        returning id, private, todo, owner_id into NEW.id, NEW.private, NEW.todo, var_owner_id;
     end if;
 
-    return (NEW.id, NEW.todo, NEW.private :: bool, true);
+    return (NEW.id, NEW.todo, NEW.private :: bool, var_owner_id = request.user_id());
 end
 $$ security definer language plpgsql;
 
@@ -39,3 +41,4 @@ create trigger upsert_todos instead of insert or update on todos
         execute function upsert_todos_row();
 
 alter view todos owner to api; -- it is important to set the correct owner to the RLS policy kicks in
+alter function upsert_todos_row() owner to api;
