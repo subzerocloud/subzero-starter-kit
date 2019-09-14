@@ -10,12 +10,13 @@ describe('auth', function() {
   it('can login', function(done) {
     graphql()
       .send({ 
-        query: `{ login(email:"alice@email.com", password: "pass"){ me } }`
+        query: `mutation { login(email:"alice@email.com", password: "pass"){ id, email } }`
       })
       .expect(200, done)
       .expect('Content-Type', /json/)
       .expect(r => {
-        r.body.data.login.me.email.should.equal('alice@email.com');
+        //console.log(r.body)
+        r.body.data.login.email.should.equal('alice@email.com');
 
       }, done)
       .expect('set-cookie', /SESSIONID/)
@@ -25,12 +26,13 @@ describe('auth', function() {
 
     graphql()
       .send({ 
-        query: `mutation { signup( name: "John Doe", email:"john@email.com", password: "pass"){ me } }`
+        query: `mutation { signup( name: "John Doe", email:"john@email.com", password: "pass"){ id, email } }`
       })
       .expect(200, done)
       .expect('Content-Type', /json/)
       .expect(r => {
-        r.body.data.signup.me.email.should.equal('john@email.com');
+        //console.log(r.body)
+        r.body.data.signup.email.should.equal('john@email.com');
 
       })
   });

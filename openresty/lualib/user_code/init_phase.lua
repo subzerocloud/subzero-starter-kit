@@ -10,4 +10,4 @@ local postgrest = require('postgrest.handle')
 if type(hooks.on_init) == 'function' then
 	hooks.on_init()
 end
-postgrest.init('/internal/rest')
+postgrest.init('/rest')
