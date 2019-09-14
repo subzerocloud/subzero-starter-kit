@@ -7,4 +7,31 @@
 -- the view is named "todos", plural, to match the rest conventions.
 create or replace view todos as
 select id, todo, private, (owner_id = request.user_id()) as mine from data.todo t;
+
+create or replace function upsert_todos_row() returns trigger as $$
+begin
+    if OLD.id is not null then
+        update 
+            data.todo
+        set
+            todo=NEW.todo,
+            private=NEW.private
+        where id=OLD.id
+        returning private into NEW.private;
+    else
+        insert into data.todo 
+            (todo, private, owner_id)
+        values
+            (NEW.todo, NEW.private :: bool, request.user_id())
+        returning id, private into NEW.id, NEW.private;
+    end if;
+
+    return (NEW.id, NEW.todo, NEW.private :: bool, true);
+end
+$$ security definer language plpgsql;
+
+create trigger upsert_todos instead of insert or update on todos
+    for each row
+        execute function upsert_todos_row();
+
 alter view todos owner to api; -- it is important to set the correct owner to the RLS policy kicks in
