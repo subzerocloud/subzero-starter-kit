@@ -31,7 +31,11 @@ begin
         returning id, private, todo, owner_id into NEW.id, NEW.private, NEW.todo, var_owner_id;
     end if;
 
-    return (NEW.id, NEW.todo, NEW.private :: bool, var_owner_id = request.user_id());
+    if NEW.id is not null then
+        return (NEW.id, NEW.todo, NEW.private :: bool, var_owner_id = request.user_id());
+    else
+        RAISE EXCEPTION 'updating dataset % did not succeed', OLD.id;
+    end if;
 end
 $$ security definer language plpgsql;
 
@@ -40,5 +44,30 @@ create trigger upsert_todos instead of insert or update on todos
     for each row
         execute function upsert_todos_row();
 
+
+-- trigger function which deletes data in case of an delete statement on the view api.todos
+-- from the underlying table in schema data
+create or replace function delete_todos_row() returns trigger as $$
+declare
+    result int;
+begin
+    
+    with deleted as (delete from data.todo where id = OLD.id returning 1)
+    select count(*) into result from deleted;
+
+    if (result) then
+        return OLD;
+    else
+        RAISE EXCEPTION 'deleting dataset % did not succeed', OLD.id;
+    end if;
+end
+$$ security definer language plpgsql;
+
+-- enable trigger which overwrites delete action of the view todos
+create trigger delete_todos instead of delete on todos
+    for each row
+        execute function delete_todos_row();
+
 alter view todos owner to api; -- it is important to set the correct owner to the RLS policy kicks in
 alter function upsert_todos_row() owner to api;
+alter function delete_todos_row() owner to api;

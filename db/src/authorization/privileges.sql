@@ -7,7 +7,7 @@
 -- specify which application roles can access this api (you'll probably list them all)
 grant usage on schema api to api, anonymous, webuser;
 -- specify grants on schema data in order to manipulate data on original tables (maybe you'll also add anonymous)
-grant usage on schema data to api, webuser;
+grant usage on schema data to api;
 
 -- set privileges to all the auth flow functions
 grant execute on function api.login(text,text) to anonymous;
@@ -22,7 +22,7 @@ grant execute on function api.logout() to webuser;
 -- enable RLS on the table holding the data
 alter table data.todo enable row level security;
 -- define the RLS policy controlling what rows are visible to a particular application user
-create policy todo_access_policy on data.todo to api 
+create policy todo_access_policy_select on data.todo for select to api 
 using (
 	-- the authenticated users can see all his todo items
 	-- notice how the rule changes based on the current user_id
@@ -32,12 +32,19 @@ using (
 	or
 	-- everyone can see public todo
 	(private = false)
-)
-with check (
-	-- authenticated users can only update/delete their todos
+);
+
+create policy todo_access_policy on data.todo to api 
+using (
+	(request.user_role() = 'webuser' and request.user_id() = owner_id)
+) with check (
 	(request.user_role() = 'webuser' and request.user_id() = owner_id)
 );
 
+-- create policy todo_access_policy_delete on for delete data.todo to api 
+-- using (
+-- 	(request.user_role() = 'webuser' and request.user_id() = owner_id)
+-- ) ;
 
 -- give access to the view owner to this table
 grant select, insert, update, delete on data.todo to api;
