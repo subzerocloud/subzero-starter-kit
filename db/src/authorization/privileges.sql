@@ -35,7 +35,7 @@ using (
 	(request.user_role() = 'webadmin')
 );
 
--- insert, update and delete only own entries as webuser
+-- insert, update and delete only own entries as webuser and everything as webadmin
 create policy todo_access_policy on data.todo to api 
 using (
 	(request.user_role() = 'webuser' and request.user_id() = owner_id) or
@@ -44,11 +44,6 @@ using (
 	(request.user_role() = 'webuser' and request.user_id() = owner_id) or
 	(request.user_role() = 'webadmin')
 );
-
--- create policy todo_access_policy_delete on for delete data.todo to api 
--- using (
--- 	(request.user_role() = 'webuser' and request.user_id() = owner_id)
--- ) ;
 
 -- give access to the view owner to this table
 grant select, insert, update, delete on data.todo to api;
