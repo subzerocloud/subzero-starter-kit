@@ -10,7 +10,7 @@ select * from check_test(
 );
 
 select * from check_test(
-    functions_are('api', array['login', 'signup', 'refresh_token', 'me', 'search_items'], 'functions present' ),
+    functions_are('api', array['login', 'logout', 'signup', 'refresh_token', 'me', 'search_items'], 'functions present' ),
     true,
     'all functions are present in api schema',
     'functions present',

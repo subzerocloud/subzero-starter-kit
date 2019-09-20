@@ -22,6 +22,16 @@ describe('auth', function () {
       .expect(200, done)
   })
 
+  it('logout', function (done) {
+    rest_service()
+      .post('/rpc/logout')
+      .set('Accept', 'application/vnd.pgrst.object+json')
+      .send()
+      .expect('Content-Type', /json/)
+      .expect('set-cookie', /SESSIONID/)
+      .expect(200, done)
+  })
+
   it('me', function (done) {
     rest_service()
       .post('/rpc/me')
