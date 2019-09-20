@@ -1,4 +1,4 @@
-create type user_role as enum ('webuser');
+create type user_role as enum ('webuser', 'webadmin');
 create table "user" (
 	id                   serial primary key,
 	name                 text not null,

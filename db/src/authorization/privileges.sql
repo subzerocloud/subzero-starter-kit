@@ -13,12 +13,10 @@ grant usage on schema data to api;
 grant execute on function api.login(text,text) to anonymous;
 grant execute on function api.logout() to anonymous;
 grant execute on function api.signup(text,text,text) to anonymous;
-grant execute on function api.logout() to anonymous;
 grant execute on function api.me() to webuser;
 grant execute on function api.login(text,text) to webuser;
 grant execute on function api.logout() to webuser;
 grant execute on function api.refresh_token() to webuser;
-grant execute on function api.logout() to webuser;
 
 -- define the who can access todo model data
 -- enable RLS on the table holding the data
@@ -30,17 +28,21 @@ using (
 	-- notice how the rule changes based on the current user_id
 	-- which is specific to each individual request
 	(request.user_role() = 'webuser' and request.user_id() = owner_id)
-
 	or
 	-- everyone can see public todo
 	(private = false)
+	or
+	(request.user_role() = 'webadmin')
 );
 
+-- insert, update and delete only own entries as webuser
 create policy todo_access_policy on data.todo to api 
 using (
-	(request.user_role() = 'webuser' and request.user_id() = owner_id)
+	(request.user_role() = 'webuser' and request.user_id() = owner_id) or
+	(request.user_role() = 'webadmin')
 ) with check (
-	(request.user_role() = 'webuser' and request.user_id() = owner_id)
+	(request.user_role() = 'webuser' and request.user_id() = owner_id) or
+	(request.user_role() = 'webadmin')
 );
 
 -- create policy todo_access_policy_delete on for delete data.todo to api 

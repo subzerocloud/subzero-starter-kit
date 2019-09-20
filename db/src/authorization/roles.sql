@@ -17,5 +17,11 @@ grant :"anonymous" to :"authenticator";
 
 -- role for the main application user accessing the api
 drop role if exists webuser;
-create role webuser;
+create role webuser inherit;
 grant webuser to :"authenticator";
+
+-- role for the main application admin accessing the api
+drop role if exists webadmin;
+create role webadmin;
+grant webadmin to :"authenticator";
+grant webuser to webadmin;
