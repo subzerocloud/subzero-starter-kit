@@ -47,7 +47,7 @@ using (
 
 -- give access to the view owner to this table
 grant select, insert, update, delete on data.todo to api;
-grant usage on data.todo_id_seq to webuser;
+grant usage on data.todo_id_seq to api;
 
 
 -- While grants to the view owner and the RLS policy on the underlying table 
