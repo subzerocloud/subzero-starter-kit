@@ -33,7 +33,9 @@ services:
   # PostgREST instance, is responsible for communicating with the database
   # and providing a REST api, (almost) every request that is sent to the database goes through it
   postgrest:
-    image: subzerocloud/postgrest
+    image: subzerocloud/postgrest-development # this is a development image limited to 1 database connection in the pool
+    # for production use the image below (you'll need a 'On Premise' subscription)
+    # image: registry.subzero.cloud/postgrest
     ports:
       - "3000:3000"
     links:
