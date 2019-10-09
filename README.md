@@ -6,7 +6,8 @@ backends with [subZero](https://subzero.cloud/).
 ![subZero Starter Kit](https://raw.githubusercontent.com/wiki/subzerocloud/postgrest-starter-kit/images/postgrest-starter-kit.gif "subZero Starter Kit")
 
 
-
+## Runs Anywhere
+Run subZero stack as a hassle-free service ([free plan](http://localhost:8000/pricing.html) available) or deploy it yourself anywhere using binary and docker distributions.
 
 ## Features
 
@@ -132,7 +133,7 @@ npm run test_graphql            # Run graphql integration tests
 ```
 
 ## Deployment
-* [subZero Cloud](http://docs.subzero.cloud/production-infrastructure/subzero-cloud/) ([invite](https://subzero.cloud) required)
+* [subZero Cloud](http://docs.subzero.cloud/production-infrastructure/subzero-cloud/)
 * [Amazon ECS+RDS](http://docs.subzero.cloud/production-infrastructure/aws-ecs-rds/)
 * [Amazon Fargate+RDS](http://docs.subzero.cloud/production-infrastructure/aws-fargate-rds/)
 * [Dedicated Linux Server](https://docs.subzero.cloud/production-infrastructure/ubuntu-server/)
