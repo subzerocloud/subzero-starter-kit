@@ -7,7 +7,7 @@ backends with [subZero](https://subzero.cloud/).
 
 
 ## Runs Anywhere
-Run subZero stack as a hassle-free service ([free plan](http://localhost:8000/pricing.html) available) or deploy it yourself anywhere using binary and docker distributions.
+Run subZero stack as a hassle-free service ([free plan](https://subzero.cloud/pricing.html) available) or deploy it yourself anywhere using binary and docker distributions.
 
 ## Features
 
