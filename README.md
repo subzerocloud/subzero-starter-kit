@@ -24,7 +24,7 @@ Run subZero stack as a hassle-free service ([free plan](https://subzero.cloud/pr
 ✓ Integration tests with [SuperTest / Mocha](https://github.com/visionmedia/supertest)<br>
 ✓ Docker files for building production images<br>
 ✓ Community support on [Slack](https://slack.subzero.cloud/)<br>
-✓ Custom PostgREST binary that creates prepared statements instead of inline queries<br>
+✓ Enhanced [PostgREST+](https://docs.subzero.cloud/postgrest-plus/) binary that creates prepared statements instead of inline queries<br>
 ✓ Live events (with authentication/authorization) through RabbitMQ [WebSTOMP plugin](https://www.rabbitmq.com/web-stomp.html)<br>
 ✓ Scriptable proxy level caching using nginx [proxy_cache](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache) (other backends like Redits possible)<br>
 
