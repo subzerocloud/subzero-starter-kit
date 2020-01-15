@@ -12,6 +12,7 @@ services:
     ports:
       - "5432:5432"
     environment:
+      # the values are defined in the .env file
       # env vars specific to postgres image used on first boot
       - POSTGRES_USER=${SUPER_USER}
       - POSTGRES_PASSWORD=${SUPER_USER_PASSWORD}
@@ -33,12 +34,15 @@ services:
   # PostgREST instance, is responsible for communicating with the database
   # and providing a REST api, (almost) every request that is sent to the database goes through it
   postgrest:
-    image: subzerocloud/postgrest
+    image: subzerocloud/postgrest-development # this is a development image limited to 1 database connection in the pool
+    # for production use the image below (you'll need a 'On Premise' subscription)
+    # image: registry.subzero.cloud/postgrest
     ports:
       - "3000:3000"
     links:
       - db:db
     environment:
+      # the values are defined in the .env file
       - PGRST_DB_URI=postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
       - PGRST_DB_SCHEMA=${DB_SCHEMA} 
       - PGRST_DB_ANON_ROLE=${DB_ANON_ROLE}
@@ -48,6 +52,7 @@ services:
       - PGRST_MAX_ROWS=${MAX_ROWS} 
       - PGRST_PRE_REQUEST=${PRE_REQUEST}
       - PGRST_SERVER_PROXY_URI=${SERVER_PROXY_URI}
+      - PGRST_CUSTOM_RELATIONS=${PGRST_CUSTOM_RELATIONS}
     depends_on:
       - db
 
@@ -65,6 +70,7 @@ services:
       - postgrest:postgrest
       - rabbitmq:rabbitmq
     environment:
+      # the values are defined in the .env file
       - JWT_SECRET=${JWT_SECRET}
       - DEVELOPMENT=${DEVELOPMENT}
       - POSTGREST_HOST=${POSTGREST_HOST}

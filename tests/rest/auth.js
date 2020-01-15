@@ -53,7 +53,7 @@ describe('auth', function () {
       .send({})
       .expect('Content-Type', /json/)
       .expect(r => {
-        console.log(r.body)
+        //console.log(r.body)
         //r.body.length.should.above(0)
       })
       .expect('set-cookie', /SESSIONID/)

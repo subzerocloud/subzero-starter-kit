@@ -17,9 +17,7 @@ begin
         ),
         settings.get('jwt_secret')
     );
-    cookie := util.get_cookie_string('SESSIONID', token, settings.get('jwt_lifetime')::int,'/');
-    perform set_config('response.headers', '[{"Set-Cookie":"'||cookie||'"}]', true);
-
+    perform response.set_cookie('SESSIONID', token, settings.get('jwt_lifetime')::int,'/');
      return (
         usr.id,
         usr.name,
