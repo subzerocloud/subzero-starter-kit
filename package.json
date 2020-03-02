@@ -11,6 +11,9 @@
     "supertest": "^3.0.0"
   },
   "scripts": {
+    "dev": "docker-compose up --force-recreate",
+    "dev:down": "docker-compose down",
+    "psql:logs": ". .env && docker logs -f ${COMPOSE_PROJECT_NAME}_db_1",
     "test_graphql": "mocha  --no-timeouts --require babel-core/register ./tests/graphql/",
     "test_rest": "mocha --no-timeouts --require babel-core/register ./tests/rest/",
     "test_db": "node tests/bin/test_db.js",
