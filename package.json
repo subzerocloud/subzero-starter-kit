@@ -5,9 +5,11 @@
     "babel-core": "^6.24.0",
     "babel-preset-latest": "^6.24.1",
     "dotenv": "4.0.0",
+    "jest": "^25.1.0",
     "jsonwebtoken": "^8.3.0",
-    "mocha": "^6.2.0",
+    "mocha": "^6.2.2",
     "should": "^11.2.0",
+    "subzero-cli": "^0.1.39",
     "supertest": "^3.0.0"
   },
   "scripts": {
@@ -15,6 +17,16 @@
     "test_rest": "mocha --no-timeouts --require babel-core/register ./tests/rest/",
     "test_db": "node tests/bin/test_db.js",
     "test": "npm run test_db && npm run test_rest && npm run test_graphql"
+  },
+  "jest": {
+    "projects": [
+      {
+        "displayName": "rest",
+        "testMatch": [
+          "<rootDir>/tests/rest/*.js"
+        ]
+      }
+    ]
   },
   "author": "ruslan.talpa@subzero.cloud",
   "license": "ISC"

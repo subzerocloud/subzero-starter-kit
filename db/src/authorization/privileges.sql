@@ -33,7 +33,8 @@ using (
 )
 with check (
 	-- authenticated users can only update/delete their todos
-	(request.user_role() = 'webuser' and request.user_id() = owner_id)
+	-- (request.user_role() = 'webuser' and request.user_id() = owner_id)
+	false
 );
 
 

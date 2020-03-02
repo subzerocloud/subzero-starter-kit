@@ -7,4 +7,35 @@
 -- the view is named "todos", plural, to match the rest conventions.
 create or replace view todos as
 select data.relay_id(t.*) as id, id as row_id, todo, private, (owner_id = request.user_id()) as mine from data.todo t;
+
 alter view todos owner to api; -- it is important to set the correct owner to the RLS policy kicks in
+
+create or replace function data.mutation_todos() returns trigger as
+$$
+declare
+    res api.todos;
+begin
+    if (tg_op = 'DELETE') then
+        -- do nothing
+        return new;
+    elsif (tg_op = 'UPDATE') then
+        update data.todo
+        set "todo" = new."todo"
+        where id = new.id;
+        return new;
+    elsif (tg_op = 'INSERT') then
+        with gen as (insert into data.todo (todo, private)
+            values (new.todo, new.private)
+            returning *)
+        select gen.id
+        from gen
+        into res;
+        return res;
+    end if;
+end;
+$$ security definer language plpgsql;
+
+create trigger todos_write
+    instead of insert or update or delete
+    on todos
+for each row execute procedure data.mutation_todos();
