@@ -88,11 +88,7 @@ services:
       - RABBITMQ_HOST=${RABBITMQ_HOST}
       - RABBITMQ_PORT=${RABBITMQ_PORT}
     volumes:
-      - "./openresty/nginx/conf/cors.conf:/usr/local/openresty/nginx/conf/cors.conf"
-      - "./openresty/nginx/conf/graphql.conf:/usr/local/openresty/nginx/conf/graphql.conf"
-      - "./openresty/nginx/conf/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf"
-      - "./openresty/nginx/conf/rabbitmq.conf:/usr/local/openresty/nginx/conf/rabbitmq.conf"
-      - "./openresty/nginx/conf/rest.conf:/usr/local/openresty/nginx/conf/rest.conf"
+      - "./openresty/nginx:/usr/local/openresty/nginx/conf"
       - "./openresty/html:/usr/local/openresty/nginx/html"
       - "./openresty/lua:/usr/local/openresty/lualib/user_code"
     depends_on:
