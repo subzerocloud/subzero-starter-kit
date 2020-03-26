@@ -41,13 +41,10 @@ Run subZero stack as a hassle-free service ([free plan](https://subzero.cloud/pr
 │       ├── sample_data       # A few sample rows
 │       └── init.sql          # Schema definition entry point
 ├── openresty                 # Reverse proxy configurations and Lua code
-│   ├── lualib
-│   │   └── user_code         # Application Lua code
-│   ├── nginx                 # Nginx files
-│   │   ├── conf              # Configuration files
-│   │   └── html              # Static frontend files
-│   ├── Dockerfile            # Dockerfile definition for production
-│   └── entrypoint.sh         # Custom entrypoint
+│   ├── lua                   # Application Lua code
+│   ├── nginx                 # Nginx configuration files
+│   ├── html                  # Static frontend files
+│   └── Dockerfile            # Dockerfile definition for building custom production images
 ├── tests                     # Tests for all the components
 │   ├── db                    # pgTap tests for the db
 │   ├── graphql               # GraphQL interface tests

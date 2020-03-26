@@ -1,13 +1,13 @@
 -- cache using nginx internal shared dictionary
 local cache = require 'cache.core'
 local backend = require 'cache.backend.nginx'
-backend.init(ngx.shared.cache_tags) -- the parameter is a lua_shared_dict defined in conf/includes/http/nginx_cache.conf
+backend.init(ngx.shared.cache_tags) -- the parameter is a lua_shared_dict defined in nginx.conf
 
 local endpoint_synonyms = { 
     item='items'
 }
 local function get_endpoint()
-    return ngx.var.uri:gsub('/rest/', '')
+    return ngx.var.uri:gsub(ngx.var.rest_prefix, '')
 end
 
 --[[

@@ -61,7 +61,9 @@ services:
   # After some processing/checks and transformation, the request is forwarded
   # to PostgREST down the stack.
   openresty:
-    image: subzerocloud/openresty
+    image: subzerocloud/openresty-development
+    # for production use the image below (you'll need a 'On Premise' subscription)
+    # image: registry.subzero.cloud/openresty
     command: ["/usr/bin/openresty", "-g", "daemon off; error_log /dev/stderr info;"]
     ports:
       - "8080:80"
@@ -86,10 +88,13 @@ services:
       - RABBITMQ_HOST=${RABBITMQ_HOST}
       - RABBITMQ_PORT=${RABBITMQ_PORT}
     volumes:
+      - "./openresty/nginx/conf/cors.conf:/usr/local/openresty/nginx/conf/cors.conf"
+      - "./openresty/nginx/conf/graphql.conf:/usr/local/openresty/nginx/conf/graphql.conf"
       - "./openresty/nginx/conf/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf"
-      - "./openresty/nginx/conf/includes:/usr/local/openresty/nginx/conf/includes"
-      - "./openresty/nginx/html:/usr/local/openresty/nginx/html"
-      - "./openresty/lualib/user_code:/usr/local/openresty/lualib/user_code"
+      - "./openresty/nginx/conf/rabbitmq.conf:/usr/local/openresty/nginx/conf/rabbitmq.conf"
+      - "./openresty/nginx/conf/rest.conf:/usr/local/openresty/nginx/conf/rest.conf"
+      - "./openresty/html:/usr/local/openresty/nginx/html"
+      - "./openresty/lua:/usr/local/openresty/lualib/user_code"
     depends_on:
       - postgrest
 
