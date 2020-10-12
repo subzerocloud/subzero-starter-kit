@@ -71,7 +71,7 @@ services:
       - db:db
       - postgrest:postgrest
       - rabbitmq:rabbitmq
-      - redis:redis
+      # - redis:redis
     environment:
       # the values are defined in the .env file
       - JWT_SECRET=${JWT_SECRET}
@@ -117,7 +117,7 @@ services:
       - db
       - rabbitmq
     environment:
-      - RUST_LOG=debug # output forwarded messages, use "info" for production
+      - RUST_LOG=pg_event_proxy=debug # output forwarded messages, use "info" for production
       - PGPROXY_LOCAL-POSTGRESQL_URI=postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
       # format of "BRIDGE_CHANNELS" config is as follows
       # pgchannel1->exchange:topic_exchange_name, pgchannel2->queue:queue_name, pgchannel3->topic:topic_name
