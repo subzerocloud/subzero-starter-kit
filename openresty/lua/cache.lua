@@ -1,23 +1,29 @@
 -- cache using nginx internal shared dictionary
 local cache = require 'cache.core'
-local backend = require 'cache.backend.nginx'
-backend.init(ngx.shared.cache_tags) -- the parameter is a lua_shared_dict defined in nginx.conf
+-- use in conjunction with ngx_http_proxy_module caching method
+local tag_store_backend = require 'cache.backend.nginx'
+tag_store_backend.init(ngx.shared.cache_tags) -- the parameter is a lua_shared_dict defined in nginx.conf
 
-local endpoint_synonyms = { 
-    item='items'
-}
+-- use in conjunction with ngx_srcache caching method
+-- local tag_store_backend = require 'cache.backend.redis'
+-- tag_store_backend.init('/redis?method=batch') -- the parameter is an internally accesible location defined in redis.conf
+
+
 local function get_endpoint()
-    return ngx.var.uri:gsub(ngx.var.rest_prefix, '')
+    return ngx.var.uri:gsub(ngx.var.rest_prefix .. '/', '')
 end
 
 --[[
-Look at the select parameter and extract all the embeded endpoints (tables) in this request
+Return all the "tags" for the current GET request
+We can use these tags on DELETE/POST/PATCH to selectively invalidate a group of cached requests at the same time
 --]]
 local function get_request_tags()
-    local tags = {}
+    local tags = {'all'} -- we add tag so that if we need to we can invalidate all cached requests
     local endpoint = get_endpoint()
+    table.insert(tags, endpoint) -- we tag the request with the current endpoint name (table name)
     local select = ngx.var.arg_select or '*'
-    table.insert(tags, endpoint)
+    -- we also look for other tables specified in the select parameter from where the data is pulled
+    -- the regexp will match only the simple cases (this is jsut an example)
     local matches = select:gsub(' ',''):gmatch('([^,:]+)%(')
     for tag in matches do
         table.insert(tags, (endpoint_synonyms[tag] or tag))
@@ -53,7 +59,7 @@ local function get_invalid_cache_tags()
 end
 
 local tags_ttl = 60 * 5;
-cache.init(backend, {
+cache.init(tag_store_backend, {
     get_cache_key = get_cache_key,
     get_cache_tags = get_invalid_cache_tags
 }, tags_ttl)

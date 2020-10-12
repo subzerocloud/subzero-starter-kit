@@ -8,6 +8,8 @@
 -- it can only switch to other roles
 drop role if exists :authenticator;
 create role :"authenticator" with login password :'authenticator_pass';
+-- uncomment this line if you want to use the authenticator role for streaming WAL using pg-event-proxy (see docker-compose.yaml for more details)
+-- alter role :"authenticator" with REPLICATION;
 
 -- this is an application level role
 -- requests that are not authenticated will be executed with this role's privileges

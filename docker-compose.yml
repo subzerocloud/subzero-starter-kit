@@ -71,6 +71,7 @@ services:
       - db:db
       - postgrest:postgrest
       - rabbitmq:rabbitmq
+      - redis:redis
     environment:
       # the values are defined in the .env file
       - JWT_SECRET=${JWT_SECRET}
@@ -87,30 +88,60 @@ services:
       - RELAY_ID_COLUMN=${RELAY_ID_COLUMN}
       - RABBITMQ_HOST=${RABBITMQ_HOST}
       - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - REDIS_USER=${REDIS_USER}
+      - REDIS_PASS=${REDIS_PASS}
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
     volumes:
-      #- "./openresty/nginx:/usr/local/openresty/nginx/conf"
       - "./openresty/nginx/cors.conf:/usr/local/openresty/nginx/conf/cors.conf"
       - "./openresty/nginx/graphql.conf:/usr/local/openresty/nginx/conf/graphql.conf"
       - "./openresty/nginx/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf"
       - "./openresty/nginx/rabbitmq.conf:/usr/local/openresty/nginx/conf/rabbitmq.conf"
+      - "./openresty/nginx/redis.conf:/usr/local/openresty/nginx/conf/redis.conf"
       - "./openresty/nginx/rest.conf:/usr/local/openresty/nginx/conf/rest.conf"
       - "./openresty/html:/usr/local/openresty/nginx/html"
       - "./openresty/lua:/usr/local/openresty/lualib/user_code"
     depends_on:
       - postgrest
 
-  # pg-amqp-bridge instance is responsible for forwarding NOTIFY events in PostgreSQL
-  # to RabbitMQ based on the BRIDGE_CHANNELS configuration
-  pg_amqp_bridge:
-    image: subzerocloud/pg-amqp-bridge
+  # pg-event-proxy instance is responsible for forwarding NOTIFY or WAL events in PostgreSQL
+  # to and upstream server, current supported upstream protocols are
+  # amqp 0.9 (RabbitMQ)
+  # mqtt (Apache ActiveMQ, Cassandana, HiveMQ, Mosquitto, RabbitMQ, AWS IoT, Amazon MQ, ...)
+  # redis
+  pg_event_proxy:
+    image: subzerocloud/pg-event-proxy-development
+    # for production use the image below (you'll need a 'On Premise' subscription)
+    # image: registry.subzero.cloud/pg-event-proxy
     links:
       - db
       - rabbitmq
     environment:
-      - RUST_LOG=info # output forwarded messages
-      - POSTGRESQL_URI=postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
-      - AMQP_URI=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq//
-      - BRIDGE_CHANNELS=events:amq.topic
+      - RUST_LOG=debug # output forwarded messages, use "info" for production
+      - PGPROXY_LOCAL-POSTGRESQL_URI=postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+      # format of "BRIDGE_CHANNELS" config is as follows
+      # pgchannel1->exchange:topic_exchange_name, pgchannel2->queue:queue_name, pgchannel3->topic:topic_name
+      # "wal2json" has a special meaning when used as a value for pgchannel
+      # in this case the replication events (WAL) will be streamed (as oposed to events from NOTIFY wal2json, ... query)
+      # for example "wal2json->exchange:amqp.topic" will stream WAL to "amqp.topic" exchange
+      # when streaming WAL, the database user needs to have REPLICATION privilege (see db/src/authorization/roles.sql)
+      # these configurations are only used when streaming WAL, the example below are the default values, uncomment only if you need to change them
+      # - PGPROXY_LOCAL-REPLICATION_SLOT=pg_event_proxy 
+      # - PGPROXY_LOCAL-WAL2JSON_PARAMS=\"format-version\" '2' , \"include-types\" '0'
+
+      # Configuration for RabbitMQ upstream
+      - PGPROXY_LOCAL-UPSTREAM=amqp
+      - PGPROXY_LOCAL-UPSTREAM_CONFIG-URI=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq//
+      - PGPROXY_LOCAL-UPSTREAM_CONFIG-BRIDGE_CHANNELS=events->exchange:amq.topic
+      - PGPROXY_LOCAL-UPSTREAM_CONFIG-DELIVERY_MODE=1 # message delivery mode, 1 = non-persistent, 2 = persistent
+
+      # Configuration for Redis upstream
+      # - PGPROXY_LOCAL-UPSTREAM=redis
+      # - PGPROXY_LOCAL-UPSTREAM_CONFIG-URI=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq//
+      # - PGPROXY_LOCAL-UPSTREAM_CONFIG-BRIDGE_CHANNELS=events->exchange:amq.topic
+      # - PGPROXY_LOCAL-UPSTREAM_CONFIG-DELIVERY_MODE=1 # message delivery mode, 1 = non-persistent, 2 = persistent
+      
+
     depends_on:
       - db
 
@@ -132,5 +163,10 @@ services:
       - "./rabbitmq/entrypoint.sh:/entrypoint.sh"
       - "./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins"
       - "./rabbitmq/custom.config:/etc/rabbitmq/custom.config.template"
-      
-
+  # Just like with RabbitMQ, you can use Redis as a messaging server,
+  # aditionally, it can be used as a central caching backend (see nginx.conf and cache.lua for configuration)
+  # redis:
+  #   image: "redis:alpine"
+  #   ports:
+  #     - "6379:6379"
+  #   command: redis-server --requirepass ${REDIS_PASS}
