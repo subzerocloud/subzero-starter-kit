@@ -18,6 +18,9 @@ Return all the "tags" for the current GET request
 We can use these tags on DELETE/POST/PATCH to selectively invalidate a group of cached requests at the same time
 --]]
 local function get_request_tags()
+    local endpoint_synonyms = { 
+        item='items'
+    }
     local tags = {'all'} -- we add tag so that if we need to we can invalidate all cached requests
     local endpoint = get_endpoint()
     table.insert(tags, endpoint) -- we tag the request with the current endpoint name (table name)

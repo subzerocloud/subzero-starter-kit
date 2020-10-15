@@ -109,6 +109,7 @@ services:
   # amqp 0.9 (RabbitMQ)
   # mqtt (Apache ActiveMQ, Cassandana, HiveMQ, Mosquitto, RabbitMQ, AWS IoT, Amazon MQ, ...)
   # redis
+  # more information about this component at https://github.com/subzerocloud/pg-event-proxy-example
   pg_event_proxy:
     image: subzerocloud/pg-event-proxy-development
     # for production use the image below (you'll need a 'On Premise' subscription)
