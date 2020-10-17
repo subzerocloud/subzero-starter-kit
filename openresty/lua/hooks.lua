@@ -79,6 +79,7 @@ local function before_rest_response()
     -- end)
 
     cache.cache_request()
+    local method = ngx.var.request_method
     if method == 'POST' or method == 'PATCH' or method == 'DELETE' then
         cache.invalidate_cache_tags()
     end
