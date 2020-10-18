@@ -66,6 +66,10 @@ end
 local function on_rest_request()
     jwt_auto_refresh.check()
     cache.compute_cache_key()
+    local method = ngx.var.request_method
+    if method == 'POST' or method == 'PATCH' or method == 'DELETE' then
+        cache.invalidate_cache_tags()
+    end
 end
 
 local function before_rest_response()
@@ -79,10 +83,7 @@ local function before_rest_response()
     -- end)
 
     cache.cache_request()
-    local method = ngx.var.request_method
-    if method == 'POST' or method == 'PATCH' or method == 'DELETE' then
-        cache.invalidate_cache_tags()
-    end
+    
 end
 
 
