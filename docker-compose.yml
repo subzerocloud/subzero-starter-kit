@@ -119,28 +119,26 @@ services:
       - rabbitmq
     environment:
       - RUST_LOG=pg_event_proxy=debug # output forwarded messages, use "info" for production
-      - PGPROXY_LOCAL-POSTGRESQL_URI=postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+      - PGPROXY_DATABASE-URI=postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+      # these configurations are only used when streaming WAL, the example below are the default values, uncomment only if you need to change them
+      # - PGPROXY_DATABASE-REPLICATION_SLOT=pg_event_proxy 
+      # - PGPROXY_DATABASE-WAL2JSON_PARAMS=\"format-version\" '2' , \"include-types\" '0'
+
+      # Configuration for RabbitMQ upstream
+      - PGPROXY_UPSTREAM-MYAMQP-KIND=amqp
+      - PGPROXY_UPSTREAM-MYAMQP-URI=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq//
       # format of "BRIDGE_CHANNELS" config is as follows
       # pgchannel1->exchange:topic_exchange_name, pgchannel2->queue:queue_name, pgchannel3->topic:topic_name
       # "wal2json" has a special meaning when used as a value for pgchannel
-      # in this case the replication events (WAL) will be streamed (as oposed to events from NOTIFY wal2json, ... query)
+      # in this case the replication events (WAL) will be streamed (as opposed to events from NOTIFY wal2json, ... query)
       # for example "wal2json->exchange:amqp.topic" will stream WAL to "amqp.topic" exchange
       # when streaming WAL, the database user needs to have REPLICATION privilege (see db/src/authorization/roles.sql)
-      # these configurations are only used when streaming WAL, the example below are the default values, uncomment only if you need to change them
-      # - PGPROXY_LOCAL-REPLICATION_SLOT=pg_event_proxy 
-      # - PGPROXY_LOCAL-WAL2JSON_PARAMS=\"format-version\" '2' , \"include-types\" '0'
-
-      # Configuration for RabbitMQ upstream
-      - PGPROXY_LOCAL-UPSTREAM=amqp
-      - PGPROXY_LOCAL-UPSTREAM_CONFIG-URI=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq//
-      - PGPROXY_LOCAL-UPSTREAM_CONFIG-BRIDGE_CHANNELS=events->exchange:amq.topic
-      - PGPROXY_LOCAL-UPSTREAM_CONFIG-DELIVERY_MODE=1 # message delivery mode, 1 = non-persistent, 2 = persistent
+      - PGPROXY_UPSTREAM-MYAMQP-BRIDGE_CHANNELS=events->exchange:amq.topic
 
       # Configuration for Redis upstream
-      # - PGPROXY_LOCAL-UPSTREAM=redis
-      # - PGPROXY_LOCAL-UPSTREAM_CONFIG-URI=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq//
-      # - PGPROXY_LOCAL-UPSTREAM_CONFIG-BRIDGE_CHANNELS=events->exchange:amq.topic
-      # - PGPROXY_LOCAL-UPSTREAM_CONFIG-DELIVERY_MODE=1 # message delivery mode, 1 = non-persistent, 2 = persistent
+      # - PGPROXY_UPSTREAM-MYREDIS-KIND=redis
+      # - PGPROXY_UPSTREAM-MYREDIS-URI=redis://default:${REDIS_PASS}@redis
+      # - PGPROXY_UPSTREAM-MYREDIS-BRIDGE_CHANNELS=events->topic:events
       
 
     depends_on:
