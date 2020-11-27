@@ -3,11 +3,11 @@ services:
 
   ### DB START
   # This is the database to which the all the other components in the stack will connect and interact with
-  # (but mostly it's PostgREST that is going to be responsible for the bulk of the db traffic)
   # Having the database in a container is very convenient in development but in production you will
   # use a separate database instance, like Amazon RDS, i.e. in production this section will be
   # commented and in the .env file you will specify the ip of your separate database instance
   db:
+    container_name: db
     image: postgres:${PG_VERSION}
     ports:
       - "5432:5432"
@@ -31,94 +31,70 @@ services:
       - "./db/src:/docker-entrypoint-initdb.d"
   ### DB END
 
-  # PostgREST instance, is responsible for communicating with the database
-  # and providing a REST api, (almost) every request that is sent to the database goes through it
-  postgrest:
-    image: subzerocloud/postgrest-development # this is a development image limited to 1 database connection in the pool
-    # for production use the image below (you'll need a 'On Premise' subscription)
-    # image: registry.subzero.cloud/postgrest
-    ports:
-      - "3000:3000"
-    links:
-      - db:db
-    environment:
-      # the values are defined in the .env file
-      - PGRST_DB_URI=postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
-      - PGRST_DB_SCHEMA=${DB_SCHEMA} 
-      - PGRST_DB_ANON_ROLE=${DB_ANON_ROLE}
-      - PGRST_DB_POOL=${DB_POOL}
-      - PGRST_DB_POOL_TIMEOUT=${PGRST_DB_POOL_TIMEOUT}
-      - PGRST_JWT_SECRET=${JWT_SECRET}  
-      - PGRST_MAX_ROWS=${MAX_ROWS} 
-      - PGRST_PRE_REQUEST=${PRE_REQUEST}
-      - PGRST_SERVER_PROXY_URI=${SERVER_PROXY_URI}
-      - PGRST_CUSTOM_RELATIONS=${PGRST_CUSTOM_RELATIONS}
-    depends_on:
-      - db
+  # =====================================================================================================
+  # Fontend & API section
+  # =====================================================================================================
 
-  # OpenResty (Nginx + Lua) instance that sits in front of PostgREST.
-  # All the requests coming into the system are first hitting this component.
-  # After some processing/checks and transformation, the request is forwarded
-  # to PostgREST down the stack.
-  openresty:
-    image: subzerocloud/openresty-development
-    # for production use the image below (you'll need a 'On Premise' subscription)
-    # image: registry.subzero.cloud/openresty
-    command: ["/usr/bin/openresty", "-g", "daemon off; error_log /dev/stderr info;"]
+  # This is the central images that enables REST & Graphql api over the database
+  # it bundles PostgREST+ and OpenResty together to simplify deployment and to achieve
+  # secure and fast communication between these two components over local unix sockets.
+  # You can see how this image is built here https://github.com/subzerocloud/subzero-container/
+  subzero:
+    container_name: subzero
+    image: subzerocloud/subzero-development:latest # this is a development image limited to 1 database connection in the pool
+    # for selfhosting in production use the image below (you'll need a 'On Premise' subscription)
+    # image: registry.subzero.cloud/subzero
     ports:
       - "8080:80"
-    links:
-      - db:db
-      - postgrest:postgrest
-      - rabbitmq:rabbitmq
-      # - redis:redis
     environment:
       # the values are defined in the .env file
-      - JWT_SECRET=${JWT_SECRET}
-      - DEVELOPMENT=${DEVELOPMENT}
-      - POSTGREST_HOST=${POSTGREST_HOST}
-      - POSTGREST_PORT=${POSTGREST_PORT}
+
+      #common variables use by all internal services
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
       - DB_NAME=${DB_NAME}
       - DB_SCHEMA=${DB_SCHEMA}
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
-      - ENABLE_CACHE=${ENABLE_CACHE}
-      - RELAY_ID_COLUMN=${RELAY_ID_COLUMN}
-      - RABBITMQ_HOST=${RABBITMQ_HOST}
-      - RABBITMQ_PORT=${RABBITMQ_PORT}
-      - REDIS_USER=${REDIS_USER}
-      - REDIS_PASS=${REDIS_PASS}
-      - REDIS_HOST=${REDIS_HOST}
-      - REDIS_PORT=${REDIS_PORT}
-    volumes:
-      - "./openresty/nginx/cors.conf:/usr/local/openresty/nginx/conf/cors.conf"
-      - "./openresty/nginx/graphql.conf:/usr/local/openresty/nginx/conf/graphql.conf"
-      - "./openresty/nginx/nginx.conf:/usr/local/openresty/nginx/conf/nginx.conf"
-      - "./openresty/nginx/rabbitmq.conf:/usr/local/openresty/nginx/conf/rabbitmq.conf"
-      - "./openresty/nginx/redis.conf:/usr/local/openresty/nginx/conf/redis.conf"
-      - "./openresty/nginx/rest.conf:/usr/local/openresty/nginx/conf/rest.conf"
-      - "./openresty/html:/usr/local/openresty/nginx/html"
-      - "./openresty/lua:/usr/local/openresty/lualib/user_code"
-    depends_on:
-      - postgrest
+      - JWT_SECRET=${JWT_SECRET}
+      - DB_ANON_ROLE=${DB_ANON_ROLE}
 
+      # postgrest specific settings
+      - PGRST_DB_POOL=${DB_POOL}
+      - PGRST_DB_POOL_TIMEOUT=${PGRST_DB_POOL_TIMEOUT}
+      - PGRST_MAX_ROWS=${MAX_ROWS} 
+      - PGRST_PRE_REQUEST=${PRE_REQUEST}
+      - PGRST_SERVER_PROXY_URI=${SERVER_PROXY_URI}
+      - PGRST_CUSTOM_RELATIONS=${PGRST_CUSTOM_RELATIONS}
+
+      # openresty specific settings
+      - DEVELOPMENT=${DEVELOPMENT}
+      - RELAY_ID_COLUMN=${RELAY_ID_COLUMN}
+    volumes:
+      - "./html:/usr/local/openresty/nginx/html"
+
+  # =====================================================================================================
+  # Database Event Capture components
+  # =====================================================================================================
+  
   # pg-event-proxy instance is responsible for forwarding NOTIFY or WAL events in PostgreSQL
+  # it can forward events to multiple upstreams / topics / queues at the same time
   # to and upstream server, current supported upstream protocols are
   # amqp 0.9 (RabbitMQ)
   # mqtt (Apache ActiveMQ, Cassandana, HiveMQ, Mosquitto, RabbitMQ, AWS IoT, Amazon MQ, ...)
-  # redis
+  # redis pubsub (Redis)
+  # SNS (Amazon Simple Notification Service)
+  # SQS (Amazon Simple Queue Service)
+  # Lambda (AWS Lambda)
   # more information about this component at https://github.com/subzerocloud/pg-event-proxy-example
-  pg_event_proxy:
+  pg-event-proxy:
+    container_name: pg-event-proxy
     image: subzerocloud/pg-event-proxy-development
     # for production use the image below (you'll need a 'On Premise' subscription)
     # image: registry.subzero.cloud/pg-event-proxy
-    links:
-      - db
-      - rabbitmq
     environment:
-      - RUST_LOG=pg_event_proxy=debug # output forwarded messages, use "info" for production
+      - RUST_LOG=pg_event_proxy=info # output forwarded messages, use "debug" for more details
+      # configuration using environment variables
       - PGPROXY_DATABASE-URI=postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
       # these configurations are only used when streaming WAL, the example below are the default values, uncomment only if you need to change them
       # - PGPROXY_DATABASE-REPLICATION_SLOT=pg_event_proxy 
@@ -126,46 +102,83 @@ services:
 
       # Configuration for RabbitMQ upstream
       - PGPROXY_UPSTREAM-MYAMQP-KIND=amqp
-      - PGPROXY_UPSTREAM-MYAMQP-URI=amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq//
-      # format of "BRIDGE_CHANNELS" config is as follows
-      # pgchannel1->exchange:topic_exchange_name, pgchannel2->queue:queue_name, pgchannel3->topic:topic_name
-      # "wal2json" has a special meaning when used as a value for pgchannel
-      # in this case the replication events (WAL) will be streamed (as opposed to events from NOTIFY wal2json, ... query)
-      # for example "wal2json->exchange:amqp.topic" will stream WAL to "amqp.topic" exchange
-      # when streaming WAL, the database user needs to have REPLICATION privilege (see db/src/authorization/roles.sql)
-      - PGPROXY_UPSTREAM-MYAMQP-BRIDGE_CHANNELS=events->exchange:amq.topic
+      - PGPROXY_UPSTREAM-MYAMQP-URI=amqp://user:pass@rabbitmq//
+      - PGPROXY_UPSTREAM-MYAMQP-BRIDGE_CHANNELS=amqpchannel->exchange:amq.topic
 
       # Configuration for Redis upstream
-      # - PGPROXY_UPSTREAM-MYREDIS-KIND=redis
-      # - PGPROXY_UPSTREAM-MYREDIS-URI=redis://default:${REDIS_PASS}@redis
-      # - PGPROXY_UPSTREAM-MYREDIS-BRIDGE_CHANNELS=events->topic:events
-      
+      - PGPROXY_UPSTREAM-MYREDIS-KIND=redis
+      - PGPROXY_UPSTREAM-MYREDIS-URI=redis://default:pass@redis
+      - PGPROXY_UPSTREAM-MYREDIS-BRIDGE_CHANNELS=redischannel->topic:events
 
-    depends_on:
-      - db
+      # Configuration for MQTT upstream
+      - PGPROXY_UPSTREAM-MYMQTT-KIND=mqtt
+      - PGPROXY_UPSTREAM-MYMQTT-URI=mqtt://user:pass@mqtt:1883 # schema can be mqtt (tcp), mqtts (ssl), ws, wss
+      - PGPROXY_UPSTREAM-MYMQTT-BRIDGE_CHANNELS=mqttchannel->topic:events
 
-  # RabbitMQ instance can be used to consolidate events that originated in your database/application.
-  # You can connect here with different consumers and take actions based on those events (like sending signup emails)
+      # these vars are used for AWS upstreams
+      - AWS_ACCESS_KEY_ID=key
+      - AWS_SECRET_ACCESS_KEY=secret
+
+      # Configuration for SNS upstream
+      - PGPROXY_UPSTREAM-MYSNS-KIND=awssns
+      - PGPROXY_UPSTREAM-MYSNS-URI=aws://sqs-mock:9911 # in production replace with aws://us-east-1 (i.e. the region id)
+      - PGPROXY_UPSTREAM-MYSNS-BRIDGE_CHANNELS=snschannel->topic:arn:aws:sns:eu-west-2:123450000001:test-topic
+
+      # Configuration for SQS upstream
+      - PGPROXY_UPSTREAM-MYSQS-KIND=awssqs
+      - PGPROXY_UPSTREAM-MYSQS-URI=aws://sqs-mock:9911 # in production replace with aws://us-east-1 (i.e. the region id)
+      - PGPROXY_UPSTREAM-MYSQS-BRIDGE_CHANNELS=sqschannel->queue:default
+
+      # # Configuration for LAMBDA upstream
+      # - PGPROXY_UPSTREAM-MYLAMBDA-KIND=awslambda
+      # - PGPROXY_UPSTREAM-MYLAMBDA-URI=aws://us-east-1
+      # - PGPROXY_UPSTREAM-MYLAMBDA-BRIDGE_CHANNELS=lambdachannel->function:HelloWorldFunction
+
+  # All the containers below are to facilitate local development.
+  # In production these would be external services,
+  # you can delete all of them and leave only the upstream you will be using
   rabbitmq:
+    container_name: rabbitmq
     image: rabbitmq:3-management
     ports:
-      - "5671:5671"
       - "5672:5672"
       - "15672:15672"
-      - "15674:15674"
-    entrypoint: /entrypoint.sh
     environment:
-      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
-      - RABBITMQ_AUTH_ENDPOINT=${RABBITMQ_AUTH_ENDPOINT}
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=pass
+
+  redis:
+    container_name: redis
+    image: "redis:alpine"
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass pass
+
+  mqtt:
+    container_name: mqtt
+    image: eclipse-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
     volumes:
-      - "./rabbitmq/entrypoint.sh:/entrypoint.sh"
-      - "./rabbitmq/enabled_plugins:/etc/rabbitmq/enabled_plugins"
-      - "./rabbitmq/custom.config:/etc/rabbitmq/custom.config.template"
-  # Just like with RabbitMQ, you can use Redis as a messaging server,
-  # aditionally, it can be used as a central caching backend (see nginx.conf and cache.lua for configuration)
-  # redis:
-  #   image: "redis:alpine"
-  #   ports:
-  #     - "6379:6379"
-  #   command: redis-server --requirepass ${REDIS_PASS}
+      - .configurations/mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - .configurations/mosquitto.pwd:/mosquitto/config/mosquitto.pwd
+
+  sqs-mock:
+    container_name: sqs-mock
+    image: roribio16/alpine-sqs:latest
+    entrypoint: sh -c "/opt/sqs-init.sh && /opt/jdk/bin/java -Dconfig.file=/opt/config/elasticmq.conf -jar /opt/elasticmq-server.jar"
+    ports:
+      - "9324:9324"
+      - "9325:9325"
+
+  # sns has a topic configured to forward events to sqs-mock default queue
+  sns-mock:
+    container_name: sns-mock
+    image: s12v/sns
+    volumes:
+      - .configurations/sns.conf:/etc/sns/db.json
+      - .configurations/wait-for-tcp.sh:/wait-for-tcp.sh
+    command: chmod +x /wait-for-tcp.sh && /wait-for-tcp.sh sqs-mock 9324 -- java -jar /sns.jar
+    ports:
+      - "9911:9911"

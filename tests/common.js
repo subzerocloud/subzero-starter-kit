@@ -14,7 +14,7 @@ const SUPER_USER_PASSWORD = process.env.SUPER_USER_PASSWORD
 
 const DB_HOST = process.env.DB_HOST
 const DB_NAME = process.env.DB_NAME
-const PG = `${COMPOSE_PROJECT_NAME}_db_1`
+const PG = `db`
 
 const psql_version = spawnSync('psql', ['--version'])
 const have_psql = (psql_version.stdout && psql_version.stdout.toString('utf8').trim().length > 0)
