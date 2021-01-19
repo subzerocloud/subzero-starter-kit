@@ -60,16 +60,23 @@ services:
       - DB_ANON_ROLE=${DB_ANON_ROLE}
 
       # postgrest specific settings
+      - PGRST_DB_URI=postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?application_name=subzero
+      - PGRST_DB_SCHEMA=${DB_SCHEMA}
+      - PGRST_DB_ANON_ROLE=${DB_ANON_ROLE}
       - PGRST_DB_POOL=${DB_POOL}
       - PGRST_DB_POOL_TIMEOUT=${PGRST_DB_POOL_TIMEOUT}
+      - PGRST_DB_CHANNEL_ENABLED=true
       - PGRST_MAX_ROWS=${MAX_ROWS} 
       - PGRST_PRE_REQUEST=${PRE_REQUEST}
       - PGRST_SERVER_PROXY_URI=${SERVER_PROXY_URI}
       - PGRST_CUSTOM_RELATIONS=${PGRST_CUSTOM_RELATIONS}
+      # - PGRST_LOGFILE=/dev/fd/1
+      - PGRST_LOGFILE=/dev/null
 
       # openresty specific settings
       - DEVELOPMENT=${DEVELOPMENT}
       - RELAY_ID_COLUMN=${RELAY_ID_COLUMN}
+      - ERR_LOGLEVEL=info
     volumes:
       - "./html:/usr/local/openresty/nginx/html"
 
@@ -111,9 +118,9 @@ services:
       - PGPROXY_UPSTREAM-MYREDIS-BRIDGE_CHANNELS=redischannel->topic:events
 
       # Configuration for MQTT upstream
-      - PGPROXY_UPSTREAM-MYMQTT-KIND=mqtt
-      - PGPROXY_UPSTREAM-MYMQTT-URI=mqtt://user:pass@mqtt:1883 # schema can be mqtt (tcp), mqtts (ssl), ws, wss
-      - PGPROXY_UPSTREAM-MYMQTT-BRIDGE_CHANNELS=mqttchannel->topic:events
+      # - PGPROXY_UPSTREAM-MYMQTT-KIND=mqtt
+      # - PGPROXY_UPSTREAM-MYMQTT-URI=mqtt://user:pass@mqtt:1883 # schema can be mqtt (tcp), mqtts (ssl), ws, wss
+      # - PGPROXY_UPSTREAM-MYMQTT-BRIDGE_CHANNELS=mqttchannel->topic:events
 
       # these vars are used for AWS upstreams
       - AWS_ACCESS_KEY_ID=key
@@ -137,48 +144,48 @@ services:
   # All the containers below are to facilitate local development.
   # In production these would be external services,
   # you can delete all of them and leave only the upstream you will be using
-  rabbitmq:
-    container_name: rabbitmq
-    image: rabbitmq:3-management
-    ports:
-      - "5672:5672"
-      - "15672:15672"
-    environment:
-      - RABBITMQ_DEFAULT_USER=user
-      - RABBITMQ_DEFAULT_PASS=pass
+  # rabbitmq:
+  #   container_name: rabbitmq
+  #   image: rabbitmq:3-management
+  #   ports:
+  #     - "5672:5672"
+  #     - "15672:15672"
+  #   environment:
+  #     - RABBITMQ_DEFAULT_USER=user
+  #     - RABBITMQ_DEFAULT_PASS=pass
 
-  redis:
-    container_name: redis
-    image: "redis:alpine"
-    ports:
-      - "6379:6379"
-    command: redis-server --requirepass pass
+  # redis:
+  #   container_name: redis
+  #   image: "redis:alpine"
+  #   ports:
+  #     - "6379:6379"
+  #   command: redis-server --requirepass pass
 
-  mqtt:
-    container_name: mqtt
-    image: eclipse-mosquitto
-    ports:
-      - "1883:1883"
-      - "9001:9001"
-    volumes:
-      - .configurations/mosquitto.conf:/mosquitto/config/mosquitto.conf
-      - .configurations/mosquitto.pwd:/mosquitto/config/mosquitto.pwd
+  # mqtt:
+  #   container_name: mqtt
+  #   image: eclipse-mosquitto
+  #   ports:
+  #     - "1883:1883"
+  #     - "9001:9001"
+  #   volumes:
+  #     - .configurations/mosquitto.conf:/mosquitto/config/mosquitto.conf
+  #     - .configurations/mosquitto.pwd:/mosquitto/config/mosquitto.pwd
 
-  sqs-mock:
-    container_name: sqs-mock
-    image: roribio16/alpine-sqs:latest
-    entrypoint: sh -c "/opt/sqs-init.sh && /opt/jdk/bin/java -Dconfig.file=/opt/config/elasticmq.conf -jar /opt/elasticmq-server.jar"
-    ports:
-      - "9324:9324"
-      - "9325:9325"
+  # sqs-mock:
+  #   container_name: sqs-mock
+  #   image: roribio16/alpine-sqs:latest
+  #   entrypoint: sh -c "/opt/sqs-init.sh && /opt/jdk/bin/java -Dconfig.file=/opt/config/elasticmq.conf -jar /opt/elasticmq-server.jar"
+  #   ports:
+  #     - "9324:9324"
+  #     - "9325:9325"
 
-  # sns has a topic configured to forward events to sqs-mock default queue
-  sns-mock:
-    container_name: sns-mock
-    image: s12v/sns
-    volumes:
-      - .configurations/sns.conf:/etc/sns/db.json
-      - .configurations/wait-for-tcp.sh:/wait-for-tcp.sh
-    command: chmod +x /wait-for-tcp.sh && /wait-for-tcp.sh sqs-mock 9324 -- java -jar /sns.jar
-    ports:
-      - "9911:9911"
+  # # sns has a topic configured to forward events to sqs-mock default queue
+  # sns-mock:
+  #   container_name: sns-mock
+  #   image: s12v/sns
+  #   volumes:
+  #     - .configurations/sns.conf:/etc/sns/db.json
+  #     - .configurations/wait-for-tcp.sh:/wait-for-tcp.sh
+  #   command: chmod +x /wait-for-tcp.sh && /wait-for-tcp.sh sqs-mock 9324 -- java -jar /sns.jar
+  #   ports:
+  #     - "9911:9911"

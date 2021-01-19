@@ -12,7 +12,6 @@ set client_min_messages to warning;
 \set jwt_secret `echo $JWT_SECRET`
 \set quoted_jwt_secret '\'' :jwt_secret '\''
 
-
 \echo # Loading database definition
 begin;
 create extension if not exists pgcrypto;
@@ -27,9 +26,6 @@ create extension if not exists pgcrypto;
 
 -- functions for for setting response headers and cookies
 \ir libs/response.sql
-
--- functions for sending messages to RabbitMQ entities
-\ir libs/rabbitmq.sql
 
 -- functions for JWT token generation in the database context
 \ir libs/pgjwt.sql

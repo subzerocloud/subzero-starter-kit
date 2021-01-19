@@ -4,9 +4,8 @@ CUSTOM_CONFIG=$(cat <<EOF
 #------------------------------------------------------------------------------
 # CUSTOM SETTINGS (they override the values set above in the config)
 #------------------------------------------------------------------------------
-
-# log all queries
-log_statement = 'all'
+# we use a custom prefix to amke it easy to detect single log lines that span multiple lines
+log_line_prefix = 'SBZ%m app=%a : '
 
 # a few settings to speed up schema reloading at the expense of durability
 fsync = off

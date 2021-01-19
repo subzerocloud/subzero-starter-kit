@@ -1,8 +1,29 @@
-\echo # Loading roles privilege
+-- This file is a central place to define all the permisions for roles used by the application
+-- You should write the sql in such a way that executing this file (even multiple times) will reset
+-- all the roles to the correct permissions
 
--- this file contains the privileges of all aplications roles to each database entity
--- if it gets too long, you can split it one file per entity ore move the permissions
--- to the file where you defined the entity
+-- Reseting all privileges for application roles (start from a clean slate)
+-- we use a convinience function here since PostgreSQL does not have a specific statement
+do $$
+declare
+    r text;
+    s text;
+    -- list roles which need resetting here
+    role_list text[] = '{webuser, anonymous, api}';
+    -- list schemas for which to reset privileges
+    schema_list text[] = '{api, data, request, response, settings}';
+begin
+    foreach r in array role_list loop 
+        foreach s in array schema_list loop 
+            execute format('revoke all privileges on all tables    in schema %I from %I', s, r);
+            execute format('revoke all privileges on all sequences in schema %I from %I', s, r);
+            execute format('revoke all privileges on all functions in schema %I from %I', s, r);
+            execute format('revoke all privileges on                  schema %I from %I', s, r);
+        end loop;
+    end loop;
+end$$;
+
+-- Loading roles privilege
 
 -- specify which application roles can access this api (you'll probably list them all)
 grant usage on schema api to anonymous, webuser;
@@ -17,23 +38,22 @@ grant execute on function api.logout() to webuser;
 grant execute on function api.refresh_token() to webuser;
 
 -- define the who can access todo model data
--- enable RLS on the table holding the data
-alter table data.todo enable row level security;
 -- define the RLS policy controlling what rows are visible to a particular application user
+drop policy if exists todo_access_policy on data.todo;
 create policy todo_access_policy on data.todo to api 
 using (
-	-- the authenticated users can see all his todo items
-	-- notice how the rule changes based on the current user_id
-	-- which is specific to each individual request
-	(request.user_role() = 'webuser' and request.user_id() = owner_id)
+    -- the authenticated users can see all his todo items
+    -- notice how the rule changes based on the current user_id
+    -- which is specific to each individual request
+    (request.user_role() = 'webuser' and request.user_id() = owner_id)
 
-	or
-	-- everyone can see public todo
-	(private = false)
+    or
+    -- everyone can see public todo
+    (private = false)
 )
 with check (
-	-- authenticated users can only update/delete their todos
-	(request.user_role() = 'webuser' and request.user_id() = owner_id)
+    -- authenticated users can only update/delete their todos
+    (request.user_role() = 'webuser' and request.user_id() = owner_id)
 );
 
 
