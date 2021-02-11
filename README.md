@@ -141,7 +141,7 @@ SUBZERO_PASSWORD
 SUBZERO_APPLICATION_ID
 ```
 
-While the deploy action is written for subzero.cloud (`DEPLOY_TARGET: subzerocloud`) it can easely be adapted for other deploy targets that run the subzero stack
+While the deploy action is written for subzero.cloud (`DEPLOY_TARGET: subzerocloud`) it can easily be adapted for other deploy targets that run the subzero stack
 
 ## Contributing
 
