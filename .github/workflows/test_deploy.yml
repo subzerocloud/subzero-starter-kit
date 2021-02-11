@@ -30,7 +30,7 @@ env:
   SUBZERO_API_ENDPOINT: https://app.subzero.cloud
   SUBZERO_EMAIL: ${{ secrets.SUBZERO_EMAIL }}
   SUBZERO_PASSWORD: ${{ secrets.SUBZERO_PASSWORD }}
-  SUBZERO_APPLICATION_ID:  ${{ secrets.SUBZERO_APPLICATION_ID }}
+  SUBZERO_APPLICATION_ID: ${{ secrets.SUBZERO_APPLICATION_ID }}
 
 jobs:
 

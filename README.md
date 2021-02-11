@@ -18,7 +18,7 @@ Run subZero stack as a hassle-free service ([free plan](https://subzero.cloud/pr
 ✓ Integration tests with [SuperTest / Mocha](https://github.com/visionmedia/supertest)<br>
 ✓ Community support on [Slack](https://slack.subzero.cloud/)<br>
 ✓ Uses [PostgREST+](https://subzero.cloud/postgrest-plus.html) that supports features like aggregate functions (group by), window functions, SSL, HTTP2 and many more<br>
-✓ Scriptable proxy level caching using nginx [proxy_cache](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache) (other backends like Redits possible)<br>
+✓ Scriptable proxy level caching using nginx [proxy_cache](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache) or Redis<br>
 
 ## Directory Layout
 
@@ -26,7 +26,7 @@ Run subZero stack as a hassle-free service ([free plan](https://subzero.cloud/pr
 .
 ├── db                        # Database schema source files and tests
 │   └── src                   # Schema definition
-│       ├── api               # Api entities available as REST endpoints
+│       ├── api               # Api entities available as REST and GraphQL endpoints
 │       ├── data              # Definition of source tables that hold the data
 │       ├── libs              # A collection of modules used throughout the code
 │       ├── authorization     # Application level roles and their privileges
@@ -83,7 +83,7 @@ Try a simple request
 curl http://localhost:8080/rest/todos?select=id,todo
 ```
 
-Try a GraphQL query in the integrated [GraphiQL IDE](http://localhost:8080/explore/graphql.html/)
+Try a GraphQL query in the integrated [GraphiQL IDE](http://localhost:8080/explore/graphql.html)
 
 ```
 {
@@ -107,28 +107,48 @@ The starter kit comes with a testing infrastructure setup.
 You can write pgTAP tests that run directly in your database, useful for testing the logic that resides in your database (user privileges, Row Level Security, stored procedures).
 Integration tests are written in JavaScript.
 
-Here is how you run them
+Here is how you run them locally
 
 ```bash
-npm install                     # Install test dependencies
-npm test                        # Run all tests (db, rest, graphql)
-npm run test_db                 # Run pgTAP tests
-npm run test_rest               # Run rest integration tests
-npm run test_graphql            # Run graphql integration tests
+yarn install         # Install test dependencies
+yarn test            # Run all tests (db, rest, graphql)
+yarn test_db         # Run pgTAP tests
+yarn test_rest       # Run rest integration tests
+yarn test_graphql    # Run graphql integration tests
 ```
 
+All the test are also executed on on git push (on GitHub) 
+
 ## Deployment
-* [subZero Cloud](http://docs.subzero.cloud/production-infrastructure/subzero-cloud/)
-* [Amazon ECS+RDS](http://docs.subzero.cloud/production-infrastructure/aws-ecs-rds/)
-* [Amazon Fargate+RDS](http://docs.subzero.cloud/production-infrastructure/aws-fargate-rds/)
-* [Dedicated Linux Server](https://docs.subzero.cloud/production-infrastructure/ubuntu-server/)
+The deployment is done using a [GitHub Actions script](.github/workflows/test_deploy.yaml).
+The deploy action will push your migrations to the production database using sqitch and the static files with scp.
+The deploy step is triggered only on git tags in the form of `v1.2`
+
+Note that the deploy action pushes to production the database migrations (db/migrations/) not the current database schema definition (db/src/) so you'll need execute `subzero migrations init --with-roles` before the first deploy and when iterating, you'll create new migrations using `subzero migration add <migration_name>`
+
+You'll also need to configure the following "secrets" for your github deploy action
+```
+PRODUCTION_DB_MASTER_USER
+PRODUCTION_DB_MASTER_PASSWORD
+PRODUCTION_DB_HOST
+PRODUCTION_DB_PORT
+PRODUCTION_DB_NAME
+SFTP_USER
+SFTP_PASSWORD
+SUBZERO_PASSWORD
+SUBZERO_EMAIL
+SUBZERO_PASSWORD
+SUBZERO_APPLICATION_ID
+```
+
+While the deploy action is written for subzero.cloud (`DEPLOY_TARGET: subzerocloud`) it can easely be adapted for other deploy targets that run the subzero stack
 
 ## Contributing
 
 Anyone and everyone is welcome to contribute.
 
 ## Support and Documentation
-* [Documentation](https://docs.subzero.cloud)
+* [subZero Documentation](https://docs.subzero.cloud)
 * [PostgREST API Referance](https://postgrest.com/en/stable/api.html)
 * [PostgreSQL Manual](https://www.postgresql.org/docs/current/static/index.html)
 * [Slack](https://slack.subzero.cloud/) — Watch announcements, share ideas and feedback
@@ -138,6 +158,6 @@ Anyone and everyone is welcome to contribute.
 
 Copyright © 2017-present subZero Cloud, LLC.<br />
 This source code in this repository is licensed under [MIT](https://github.com/subzerocloud/subzero-starter-kit/blob/master/LICENSE.txt) license<br />
-Components implementing the GraphQL interface (customized PostgREST and OpenResty docker images) are available under a [commercial license](https://subzero.cloud)<br />
+Components implementing the GraphQL interface (customized PostgREST+ and OpenResty docker images) are available under a [commercial license](https://subzero.cloud)<br />
 The documentation to the project is licensed under the [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/) license.
 
