@@ -1,5 +1,5 @@
-var {graphql_simple, graphql_relay, jwt, resetdb} = require('../common.js');
-var graphql = graphql_simple
+const {graphql_simple, resetdb} = require('../common.js');
+const graphql = graphql_simple
 
 describe('write', function() {
 
@@ -10,7 +10,6 @@ describe('write', function() {
     graphql()
       .withRole('webuser')
       .send({ 
-        //query: `{ todos { id name } }`
         query: `
           mutation {
             insert{

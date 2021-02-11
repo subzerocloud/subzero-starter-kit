@@ -1,5 +1,5 @@
-import { graphql_simple, resetdb } from '../common'
-import should from 'should'
+require('should');
+const {graphql_simple, resetdb} = require('../common.js');
 const graphql = graphql_simple
 
 describe('auth', function() {

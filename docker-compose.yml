@@ -35,21 +35,31 @@ services:
   # Fontend & API section
   # =====================================================================================================
 
-  # This is the central images that enables REST & Graphql api over the database
+  # This is the central image that enables REST & GraphQL api over the database
   # it bundles PostgREST+ and OpenResty together to simplify deployment and to achieve
   # secure and fast communication between these two components over local unix sockets.
   # You can see how this image is built here https://github.com/subzerocloud/subzero-container/
   subzero:
     container_name: subzero
-    image: subzerocloud/subzero-development:latest # this is a development image limited to 1 database connection in the pool
+    # this is a development image limited to 1 database connection in the pool
+    image: subzerocloud/subzero-development:latest
     # for selfhosting in production use the image below (you'll need a 'On Premise' subscription)
     # image: registry.subzero.cloud/subzero
     ports:
       - "8080:80"
     environment:
       # the values are defined in the .env file
+      # postgrest specific settings
+      - PGRST_DB_URI=postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?application_name=subzero
+      - PGRST_JWT_SECRET=${JWT_SECRET}
+      - PGRST_DB_SCHEMA=${DB_SCHEMA}
+      - PGRST_DB_ANON_ROLE=${DB_ANON_ROLE}
+      - PGRST_SERVER_PROXY_URI=${SERVER_PROXY_URI}
+      # uncomment to also see postgrest output in the logs
+      # - PGRST_LOGFILE=/dev/fd/1
+      # - PGRST_LOG_LEVEL=info
 
-      #common variables use by all internal services
+      # openresty
       - DB_HOST=${DB_HOST}
       - DB_PORT=${DB_PORT}
       - DB_NAME=${DB_NAME}
@@ -58,25 +68,18 @@ services:
       - DB_PASS=${DB_PASS}
       - JWT_SECRET=${JWT_SECRET}
       - DB_ANON_ROLE=${DB_ANON_ROLE}
-
-      # postgrest specific settings
-      - PGRST_DB_URI=postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?application_name=subzero
-      - PGRST_DB_SCHEMA=${DB_SCHEMA}
-      - PGRST_DB_ANON_ROLE=${DB_ANON_ROLE}
-      - PGRST_DB_POOL=${DB_POOL}
-      - PGRST_DB_POOL_TIMEOUT=${PGRST_DB_POOL_TIMEOUT}
-      - PGRST_DB_CHANNEL_ENABLED=true
-      - PGRST_MAX_ROWS=${MAX_ROWS} 
-      - PGRST_PRE_REQUEST=${PRE_REQUEST}
-      - PGRST_SERVER_PROXY_URI=${SERVER_PROXY_URI}
-      - PGRST_CUSTOM_RELATIONS=${PGRST_CUSTOM_RELATIONS}
-      # - PGRST_LOGFILE=/dev/fd/1
-      - PGRST_LOGFILE=/dev/null
-
-      # openresty specific settings
       - DEVELOPMENT=${DEVELOPMENT}
-      - RELAY_ID_COLUMN=${RELAY_ID_COLUMN}
+      - ENABLE_CACHE=${ENABLE_CACHE}
       - ERR_LOGLEVEL=info
+
+      # oauth providers
+      - OAUTH_SUCCESS_URI=/rest/rpc/on_oauth_login
+      - OAUTH_GOOGLE_CLIENT_ID=${OAUTH_GOOGLE_CLIENT_ID}
+      - OAUTH_GOOGLE_CLIENT_SECRET=${OAUTH_GOOGLE_CLIENT_SECRET}
+      - OAUTH_GITHUB_CLIENT_ID=${OAUTH_GITHUB_CLIENT_ID}
+      - OAUTH_GITHUB_CLIENT_SECRET=${OAUTH_GITHUB_CLIENT_SECRET}
+      - OAUTH_FACEBOOK_CLIENT_ID=${OAUTH_FACEBOOK_CLIENT_ID}
+      - OAUTH_FACEBOOK_CLIENT_SECRET=${OAUTH_FACEBOOK_CLIENT_SECRET}
     volumes:
       - "./html:/usr/local/openresty/nginx/html"
 
@@ -86,7 +89,7 @@ services:
   
   # pg-event-proxy instance is responsible for forwarding NOTIFY or WAL events in PostgreSQL
   # it can forward events to multiple upstreams / topics / queues at the same time
-  # to and upstream server, current supported upstream protocols are
+  # to an upstream server, current supported upstream protocols are
   # amqp 0.9 (RabbitMQ)
   # mqtt (Apache ActiveMQ, Cassandana, HiveMQ, Mosquitto, RabbitMQ, AWS IoT, Amazon MQ, ...)
   # redis pubsub (Redis)
@@ -94,56 +97,59 @@ services:
   # SQS (Amazon Simple Queue Service)
   # Lambda (AWS Lambda)
   # more information about this component at https://github.com/subzerocloud/pg-event-proxy-example
-  pg-event-proxy:
-    container_name: pg-event-proxy
-    image: subzerocloud/pg-event-proxy-development
-    # for production use the image below (you'll need a 'On Premise' subscription)
-    # image: registry.subzero.cloud/pg-event-proxy
-    environment:
-      - RUST_LOG=pg_event_proxy=info # output forwarded messages, use "debug" for more details
-      # configuration using environment variables
-      - PGPROXY_DATABASE-URI=postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
-      # these configurations are only used when streaming WAL, the example below are the default values, uncomment only if you need to change them
-      # - PGPROXY_DATABASE-REPLICATION_SLOT=pg_event_proxy 
-      # - PGPROXY_DATABASE-WAL2JSON_PARAMS=\"format-version\" '2' , \"include-types\" '0'
+  
+  
+  # pg-event-proxy:
+  #   container_name: pg-event-proxy
+  #   image: subzerocloud/pg-event-proxy-development
+  #   # for production use the image below (you'll need a 'On Premise' subscription)
+  #   # image: registry.subzero.cloud/pg-event-proxy
+  #   environment:
+  #     - RUST_LOG=pg_event_proxy=info # output forwarded messages, use "debug" for more details
+  #     # configuration using environment variables
+  #     - PGPROXY_DATABASE-URI=postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+  #     # these configurations are only used when streaming WAL, the example below are the default values, uncomment only if you need to change them
+  #     # - PGPROXY_DATABASE-REPLICATION_SLOT=pg_event_proxy 
+  #     # - PGPROXY_DATABASE-WAL2JSON_PARAMS=\"format-version\" '2' , \"include-types\" '0'
 
-      # Configuration for RabbitMQ upstream
-      - PGPROXY_UPSTREAM-MYAMQP-KIND=amqp
-      - PGPROXY_UPSTREAM-MYAMQP-URI=amqp://user:pass@rabbitmq//
-      - PGPROXY_UPSTREAM-MYAMQP-BRIDGE_CHANNELS=amqpchannel->exchange:amq.topic
+  #     # Configuration for RabbitMQ upstream
+  #     # - PGPROXY_UPSTREAM-MYAMQP-KIND=amqp
+  #     # - PGPROXY_UPSTREAM-MYAMQP-URI=amqp://user:pass@rabbitmq//
+  #     # - PGPROXY_UPSTREAM-MYAMQP-BRIDGE_CHANNELS=amqpchannel->exchange:amq.topic
 
-      # Configuration for Redis upstream
-      - PGPROXY_UPSTREAM-MYREDIS-KIND=redis
-      - PGPROXY_UPSTREAM-MYREDIS-URI=redis://default:pass@redis
-      - PGPROXY_UPSTREAM-MYREDIS-BRIDGE_CHANNELS=redischannel->topic:events
+  #     # Configuration for Redis upstream
+  #     # - PGPROXY_UPSTREAM-MYREDIS-KIND=redis
+  #     # - PGPROXY_UPSTREAM-MYREDIS-URI=redis://default:pass@redis
+  #     # - PGPROXY_UPSTREAM-MYREDIS-BRIDGE_CHANNELS=redischannel->topic:events
 
-      # Configuration for MQTT upstream
-      # - PGPROXY_UPSTREAM-MYMQTT-KIND=mqtt
-      # - PGPROXY_UPSTREAM-MYMQTT-URI=mqtt://user:pass@mqtt:1883 # schema can be mqtt (tcp), mqtts (ssl), ws, wss
-      # - PGPROXY_UPSTREAM-MYMQTT-BRIDGE_CHANNELS=mqttchannel->topic:events
+  #     # Configuration for MQTT upstream
+  #     # - PGPROXY_UPSTREAM-MYMQTT-KIND=mqtt
+  #     # - PGPROXY_UPSTREAM-MYMQTT-URI=mqtt://user:pass@mqtt:1883 # schema can be mqtt (tcp), mqtts (ssl), ws, wss
+  #     # - PGPROXY_UPSTREAM-MYMQTT-BRIDGE_CHANNELS=mqttchannel->topic:events
 
-      # these vars are used for AWS upstreams
-      - AWS_ACCESS_KEY_ID=key
-      - AWS_SECRET_ACCESS_KEY=secret
+  #     # these vars are used for AWS upstreams
+  #     # - AWS_ACCESS_KEY_ID=key
+  #     # - AWS_SECRET_ACCESS_KEY=secret
 
-      # Configuration for SNS upstream
-      - PGPROXY_UPSTREAM-MYSNS-KIND=awssns
-      - PGPROXY_UPSTREAM-MYSNS-URI=aws://sqs-mock:9911 # in production replace with aws://us-east-1 (i.e. the region id)
-      - PGPROXY_UPSTREAM-MYSNS-BRIDGE_CHANNELS=snschannel->topic:arn:aws:sns:eu-west-2:123450000001:test-topic
+  #     # Configuration for SNS upstream
+  #     # - PGPROXY_UPSTREAM-MYSNS-KIND=awssns
+  #     # - PGPROXY_UPSTREAM-MYSNS-URI=aws://sqs-mock:9911 # in production replace with aws://us-east-1 (i.e. the region id)
+  #     # - PGPROXY_UPSTREAM-MYSNS-BRIDGE_CHANNELS=snschannel->topic:arn:aws:sns:eu-west-2:123450000001:test-topic
 
-      # Configuration for SQS upstream
-      - PGPROXY_UPSTREAM-MYSQS-KIND=awssqs
-      - PGPROXY_UPSTREAM-MYSQS-URI=aws://sqs-mock:9911 # in production replace with aws://us-east-1 (i.e. the region id)
-      - PGPROXY_UPSTREAM-MYSQS-BRIDGE_CHANNELS=sqschannel->queue:default
+  #     # Configuration for SQS upstream
+  #     # - PGPROXY_UPSTREAM-MYSQS-KIND=awssqs
+  #     # - PGPROXY_UPSTREAM-MYSQS-URI=aws://sqs-mock:9911 # in production replace with aws://us-east-1 (i.e. the region id)
+  #     # - PGPROXY_UPSTREAM-MYSQS-BRIDGE_CHANNELS=sqschannel->queue:default
 
-      # # Configuration for LAMBDA upstream
-      # - PGPROXY_UPSTREAM-MYLAMBDA-KIND=awslambda
-      # - PGPROXY_UPSTREAM-MYLAMBDA-URI=aws://us-east-1
-      # - PGPROXY_UPSTREAM-MYLAMBDA-BRIDGE_CHANNELS=lambdachannel->function:HelloWorldFunction
+  #     # # Configuration for LAMBDA upstream
+  #     # - PGPROXY_UPSTREAM-MYLAMBDA-KIND=awslambda
+  #     # - PGPROXY_UPSTREAM-MYLAMBDA-URI=aws://us-east-1
+  #     # - PGPROXY_UPSTREAM-MYLAMBDA-BRIDGE_CHANNELS=lambdachannel->function:HelloWorldFunction
 
   # All the containers below are to facilitate local development.
   # In production these would be external services,
   # you can delete all of them and leave only the upstream you will be using
+  
   # rabbitmq:
   #   container_name: rabbitmq
   #   image: rabbitmq:3-management

@@ -1,6 +1,5 @@
 drop schema if exists request cascade;
 create schema request;
-grant usage on schema request to public;
 
 create or replace function request.env_var(v text) returns text as $$
     select current_setting(v, true);

@@ -3,29 +3,21 @@
 Base project and tooling for authoring **data API**
 backends with [subZero](https://subzero.cloud/).
 
-![subZero Starter Kit](https://raw.githubusercontent.com/wiki/subzerocloud/postgrest-starter-kit/images/postgrest-starter-kit.gif "subZero Starter Kit")
-
-
 ## Runs Anywhere
 Run subZero stack as a hassle-free service ([free plan](https://subzero.cloud/pricing.html) available) or deploy it yourself anywhere using binary and docker distributions.
 
 ## Features
 
 ✓ Out of the box GraphQL/REST endpoints created by reflection over a PostgreSQL schema<br>
+✓ Authentication using email/password or using 3rd party OAuth 2.0 providers (google/facebook/github preconfigured) <br>
 ✓ Cross-platform development on macOS, Windows or Linux inside [Docker](https://www.docker.com/)<br>
 ✓ [PostgreSQL](https://www.postgresql.org/) database schema boilerplate with authentication and authorization flow<br>
-✓ [OpenResty](https://openresty.org/en/) configuration files for the reverse proxy<br>
-✓ [RabbitMQ](https://www.rabbitmq.com/) integration through [pg-amqp-bridge](https://github.com/subzerocloud/pg-amqp-bridge)<br>
-(https://www.rabbitmq.com/web-stomp.html)<br>
-✓ [Lua](https://www.lua.org/) functions to hook into each stage of the HTTP request and add custom logic (integrate 3rd party systems)<br>
 ✓ Debugging and live code reloading (sql/configs/lua) functionality using [subzero-cli](https://github.com/subzerocloud/subzero-cli)<br>
-✓ Full migration management (migration files are automatically created) through [subzero-cli](https://github.com/subzerocloud/subzero-cli)/[sqitch](http://sqitch.org/)/[apgdiff](https://github.com/subzerocloud/apgdiff)<br>
+✓ Full migration management (migration files are automatically created) through [subzero-cli](https://github.com/subzerocloud/subzero-cli)<br>
 ✓ SQL unit test using [pgTAP](http://pgtap.org/)<br>
 ✓ Integration tests with [SuperTest / Mocha](https://github.com/visionmedia/supertest)<br>
-✓ Docker files for building production images<br>
 ✓ Community support on [Slack](https://slack.subzero.cloud/)<br>
-✓ Enhanced [PostgREST+](https://docs.subzero.cloud/postgrest-plus/) binary that creates prepared statements instead of inline queries<br>
-✓ Live events (with authentication/authorization) through RabbitMQ [WebSTOMP plugin](https://www.rabbitmq.com/web-stomp.html)<br>
+✓ Uses [PostgREST+](https://subzero.cloud/postgrest-plus.html) that supports features like aggregate functions (group by), window functions, SSL, HTTP2 and many more<br>
 ✓ Scriptable proxy level caching using nginx [proxy_cache](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache) (other backends like Redits possible)<br>
 
 ## Directory Layout
@@ -34,17 +26,13 @@ Run subZero stack as a hassle-free service ([free plan](https://subzero.cloud/pr
 .
 ├── db                        # Database schema source files and tests
 │   └── src                   # Schema definition
-│       ├── api               # Api entities avaiable as REST endpoints
+│       ├── api               # Api entities available as REST endpoints
 │       ├── data              # Definition of source tables that hold the data
-│       ├── libs              # A collection modules of used throughout the code
+│       ├── libs              # A collection of modules used throughout the code
 │       ├── authorization     # Application level roles and their privileges
 │       ├── sample_data       # A few sample rows
 │       └── init.sql          # Schema definition entry point
-├── openresty                 # Reverse proxy configurations and Lua code
-│   ├── lua                   # Application Lua code
-│   ├── nginx                 # Nginx configuration files
-│   ├── html                  # Static frontend files
-│   └── Dockerfile            # Dockerfile definition for building custom production images
+├── html                      # Place your static frontend files here
 ├── tests                     # Tests for all the components
 │   ├── db                    # pgTap tests for the db
 │   ├── graphql               # GraphQL interface tests
@@ -61,7 +49,7 @@ Run subZero stack as a hassle-free service ([free plan](https://subzero.cloud/pr
 ### Prerequisites
 * [Docker](https://www.docker.com)
 * [Node.js](https://nodejs.org/en/)
-* [subZero CLI](https://github.com/subzerocloud/subzero-cli#install)
+* [subzero-cli](https://github.com/subzerocloud/subzero-cli#install)
 
 ### Create a New Project
 subzero-cli provides you with a `base-project` command that lets you create a new project structure:
@@ -84,8 +72,8 @@ docker-compose up -d
 
 The API server will become available at the following endpoints:
 
+- Frontend [http://localhost:8080/](http://localhost:8080/)
 - REST [http://localhost:8080/rest/](http://localhost:8080/rest/)
-- GraphiQL IDE [http://localhost:8080/graphiql/](http://localhost:8080/graphiql/)
 - GraphQL Simple Schema [http://localhost:8080/graphql/simple/](http://localhost:8080/graphql/simple/)
 - GraphQL Relay Schema [http://localhost:8080/graphql/relay/](http://localhost:8080/graphql/relay/)
 
@@ -95,7 +83,7 @@ Try a simple request
 curl http://localhost:8080/rest/todos?select=id,todo
 ```
 
-Try a GraphQL query in the integrated GraphiQL IDE at [http://localhost:8080/graphiql/](http://localhost:8080/graphiql/)
+Try a GraphQL query in the integrated [GraphiQL IDE](http://localhost:8080/explore/graphql.html/)
 
 ```
 {
@@ -110,10 +98,10 @@ Try a GraphQL query in the integrated GraphiQL IDE at [http://localhost:8080/gra
 
 Execute `subzero dashboard` in the root of your project.<br />
 After this step you can view the logs of all the stack components (SQL queries will also be logged) and
-if you edit a sql/conf/lua file in your project, the changes will immediately be applied.
+if you edit a sql/conf file in your project, the changes will immediately be applied.
 
 
-## Testing
+## Unit and integration tests
 
 The starter kit comes with a testing infrastructure setup.
 You can write pgTAP tests that run directly in your database, useful for testing the logic that resides in your database (user privileges, Row Level Security, stored procedures).

@@ -1,8 +1,7 @@
-import jsonwebtoken from 'jsonwebtoken'
-import request from 'supertest'
-import { config } from 'dotenv'
-import { spawnSync } from 'child_process'
-// var execSync = require('child_process').execSync;
+const jsonwebtoken = require('jsonwebtoken');
+const request = require('supertest');
+const { config } = require('dotenv');
+const { spawnSync } = require('child_process');
 
 config()// .env file vars added to process.env
 
@@ -19,23 +18,23 @@ const PG = `db`
 const psql_version = spawnSync('psql', ['--version'])
 const have_psql = (psql_version.stdout && psql_version.stdout.toString('utf8').trim().length > 0)
 
-export function rest_service () {
+exports.rest_service =  () => {
   return request(process.env.SERVER_PROXY_URI)
 }
 
-export function graphql_simple() { 
+exports.graphql_simple = () => { 
   return request(process.env.SERVER_PROXY_URI.replace('rest', 'graphql/simple' ))
             .post('/')
             .set('Accept', 'application/json');
 }
 
-export function graphql_relay() { 
+exports.graphql_relay = () => { 
   return request(process.env.SERVER_PROXY_URI.replace('rest', 'graphql/relay' ))
             .post('/')
             .set('Accept', 'application/json');
 }
 
-export function resetdb () {
+exports.resetdb = () => {
   let pg
   if (have_psql) {
     var env = Object.create(process.env)

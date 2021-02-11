@@ -2,14 +2,18 @@
 -- You should write the sql in such a way that executing this file (even multiple times) will reset
 -- all the roles to the correct permissions
 
+-- the auto inclusion of this file when generating migrations is configured in .env file
+-- with MIGRATION_INCLUDE_END variable
+
 -- Reseting all privileges for application roles (start from a clean slate)
--- we use a convinience function here since PostgreSQL does not have a specific statement
+-- we use a convinience inline function here since PostgreSQL does not have a specific statement
+-- you only need to list the roles and schemas that need to be reset
 do $$
 declare
     r text;
     s text;
     -- list roles which need resetting here
-    role_list text[] = '{webuser, anonymous, api}';
+    role_list text[] = '{webuser, anonymous, api, proxy}';
     -- list schemas for which to reset privileges
     schema_list text[] = '{api, data, request, response, settings}';
 begin
@@ -26,7 +30,8 @@ end$$;
 -- Loading roles privilege
 
 -- specify which application roles can access this api (you'll probably list them all)
-grant usage on schema api to anonymous, webuser;
+grant usage on schema request, response to public;
+grant usage on schema api to anonymous, webuser, proxy;
 
 -- set privileges to all the auth flow functions
 grant execute on function api.login(text,text) to anonymous;
@@ -36,6 +41,7 @@ grant execute on function api.me() to webuser;
 grant execute on function api.login(text,text) to webuser;
 grant execute on function api.logout() to webuser;
 grant execute on function api.refresh_token() to webuser;
+grant execute on function api.on_oauth_login(text,json) to proxy;
 
 -- define the who can access todo model data
 -- define the RLS policy controlling what rows are visible to a particular application user

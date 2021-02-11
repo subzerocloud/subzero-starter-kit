@@ -13,12 +13,12 @@ begin
         json_build_object(
             'role', usr.role,
             'user_id', usr.id,
-            'exp', extract(epoch from now())::integer + settings.get('jwt_lifetime')::int
+            'exp', extract(epoch from now())::integer + current_setting('pgrst.jwt_lifetimet',true)::int
         ),
-        settings.get('jwt_secret')
+        current_setting('pgrst.jwt_secret',true)
     );
-    perform response.set_cookie('SESSIONID', token, settings.get('jwt_lifetime')::int,'/');
-     return (
+    perform response.set_cookie('SESSIONID', token, current_setting('pgrst.jwt_lifetimet',true)::int,'/');
+    return (
         usr.id,
         usr.name,
         usr.email,

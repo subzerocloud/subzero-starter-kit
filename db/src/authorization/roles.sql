@@ -22,3 +22,9 @@ grant :"anonymous" to :"authenticator";
 drop role if exists webuser;
 create role webuser;
 grant webuser to :"authenticator";
+
+-- role used by the proxy to make internal requests
+drop role if exists proxy;
+create role proxy;
+grant proxy to :"authenticator";
+

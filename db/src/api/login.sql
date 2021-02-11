@@ -4,9 +4,10 @@ declare
     usr record;
     token text;
 begin
+
     select * from data."user" as u
     where u.email = $1 and u.password = public.crypt($2, u.password)
-   	INTO usr;
+    into usr;
 
     if usr is NULL then
         raise exception 'invalid email/password';
@@ -15,11 +16,11 @@ begin
             json_build_object(
                 'role', usr.role,
                 'user_id', usr.id,
-                'exp', extract(epoch from now())::integer + settings.get('jwt_lifetime')::int -- token expires in 1 hour
+                'exp', extract(epoch from now())::integer + current_setting('pgrst.jwt_lifetimet',true)::int -- token expires in 1 hour
             ),
-            settings.get('jwt_secret')
+            current_setting('pgrst.jwt_secret',true)
         );
-        perform response.set_cookie('SESSIONID', token, settings.get('jwt_lifetime')::int,'/');
+        perform response.set_cookie('SESSIONID', token, current_setting('pgrst.jwt_lifetimet',true)::int,'/');
         return (
             usr.id,
             usr.name,
