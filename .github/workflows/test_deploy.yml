@@ -113,7 +113,7 @@ jobs:
           sqitch deploy "db:pg://$PRODUCTION_DB_URI"
 
       - name: upload static content
-        env.SUBZERO_UPLOAD_STATIC_FILES }}
+        if: ${{ env.SUBZERO_UPLOAD_STATIC_FILES }}
         working-directory: ./html
         run : |
           sshpass -p "$SFTP_PASSWORD" scp -o StrictHostKeyChecking=no -P $SFTP_PORT -r ./ $SFTP_USER@$SFTP_HOST:/
