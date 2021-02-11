@@ -1,12 +1,12 @@
--- This file is a central place to define all the permisions for roles used by the application
+-- This file is a central place to define all the permissions for roles used by the application
 -- You should write the sql in such a way that executing this file (even multiple times) will reset
 -- all the roles to the correct permissions
 
 -- the auto inclusion of this file when generating migrations is configured in .env file
 -- with MIGRATION_INCLUDE_END variable
 
--- Reseting all privileges for application roles (start from a clean slate)
--- we use a convinience inline function here since PostgreSQL does not have a specific statement
+-- Resetting all privileges for application roles (start from a clean slate)
+-- we use a convenience inline function here since PostgreSQL does not have a specific statement
 -- you only need to list the roles and schemas that need to be reset
 do $$
 declare
@@ -26,6 +26,14 @@ begin
         end loop;
     end loop;
 end$$;
+
+-- set the correct owner for all the api views
+alter view
+  api.todos
+-- list all views here
+-- , api.another_view
+owner to api;
+
 
 -- Loading roles privilege
 
