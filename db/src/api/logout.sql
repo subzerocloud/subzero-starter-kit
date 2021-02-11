@@ -1,4 +1,3 @@
-
 create or replace function logout() returns void as $$
 begin
     perform response.delete_cookie('SESSIONID');

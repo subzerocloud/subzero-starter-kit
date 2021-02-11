@@ -4,7 +4,9 @@ declare
     _email text;
     _name text;
     token text;
+    jwt_lifetime int;
 begin
+    jwt_lifetime := coalesce(current_setting('pgrst.jwt_lifetimet',true)::int, 3600);
 
     -- check the jwt (generated in the proxy) is authorized to perform oauth logins
     if request.jwt_claim('oauth_login') != 'true' then
@@ -37,13 +39,13 @@ begin
         json_build_object(
             'role', usr.role,
             'user_id', usr.id,
-            'exp', extract(epoch from now())::integer + current_setting('pgrst.jwt_lifetimet',true)::int
+            'exp', extract(epoch from now())::integer + jwt_lifetime
         ),
         current_setting('pgrst.jwt_secret',true)
     );
 
     -- set the session cookie and redirect to /
-    perform response.set_cookie('SESSIONID', token, current_setting('pgrst.jwt_lifetimet',true)::int,'/');
+    perform response.set_cookie('SESSIONID', token, jwt_lifetime, '/');
     perform response.set_header('location', '/');
     perform set_config('response.status', '303', true);
 end

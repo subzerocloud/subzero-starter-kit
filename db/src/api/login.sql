@@ -1,9 +1,10 @@
-
 create or replace function login(email text, password text) returns customer as $$
 declare
     usr record;
     token text;
+    jwt_lifetime int;
 begin
+    jwt_lifetime := coalesce(current_setting('pgrst.jwt_lifetimet',true)::int, 3600);
 
     select * from data."user" as u
     where u.email = $1 and u.password = public.crypt($2, u.password)
@@ -16,11 +17,11 @@ begin
             json_build_object(
                 'role', usr.role,
                 'user_id', usr.id,
-                'exp', extract(epoch from now())::integer + current_setting('pgrst.jwt_lifetimet',true)::int -- token expires in 1 hour
+                'exp', extract(epoch from now())::integer + jwt_lifetime
             ),
             current_setting('pgrst.jwt_secret',true)
         );
-        perform response.set_cookie('SESSIONID', token, current_setting('pgrst.jwt_lifetimet',true)::int,'/');
+        perform response.set_cookie('SESSIONID', token, jwt_lifetime, '/');
         return (
             usr.id,
             usr.name,
