@@ -29,7 +29,7 @@ create or replace function request.user_role() returns text as $$
     select current_setting('request.jwt.claim.role', true)::text;
 $$ stable language sql;
 
-create or replace function validate(
+create or replace function request.validate(
   valid boolean, 
   err text,
   details text default '',

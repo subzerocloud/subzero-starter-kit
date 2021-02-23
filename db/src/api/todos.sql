@@ -7,7 +7,8 @@
 -- the view is named "todos", plural, to match the rest conventions.
 
 create or replace view todos as
-select data.relay_id(t.*) as id, id as row_id, todo, private, (owner_id = request.user_id()) as mine from data.todo t;
+select id, todo, private, (owner_id = request.user_id()) as mine
+from data.todo;
 
 -- note that the owner of this view is set to "api" (check authorization/privileges.sql)
 -- this is an important step in order to have table RLS interact correctly with views

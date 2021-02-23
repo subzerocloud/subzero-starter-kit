@@ -4,8 +4,10 @@ declare
     token text;
     cookie text;
     jwt_lifetime int;
+    jwt_secret text;
 begin
     jwt_lifetime := coalesce(current_setting('pgrst.jwt_lifetimet',true)::int, 3600);
+    jwt_secret := coalesce(settings.get('jwt_secret'), current_setting('pgrst.jwt_secret',true));
 
     insert into data."user" as u
     (name, email, password) values ($1, $2, $3)
@@ -18,7 +20,7 @@ begin
             'user_id', usr.id,
             'exp', extract(epoch from now())::integer + jwt_lifetime
         ),
-        current_setting('pgrst.jwt_secret',true)
+        jwt_secret
     );
     perform response.set_cookie('SESSIONID', token, jwt_lifetime, '/');
     return (

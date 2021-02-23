@@ -14,7 +14,7 @@ describe('write', function() {
           mutation {
             insert{
               todo(input: {todo: "new name"}){
-                row_id
+                id
                 todo
               }
             }
@@ -27,7 +27,7 @@ describe('write', function() {
         //console.log(r.body.data)
         //r.body.data.todos.length.should.equal(10);
         r.body.data.insert.todo.todo.should.equal('new name');
-        r.body.data.insert.todo.row_id.should.be.type('number');
+        r.body.data.insert.todo.id.should.be.type('number');
       })
       
   });
@@ -41,7 +41,7 @@ describe('write', function() {
           mutation {
             insert{
               todos(input: [{todo: "item 1"}, {todo: "item 2"}]){
-                row_id
+                id
                 todo
               }
             }
@@ -53,9 +53,9 @@ describe('write', function() {
       .expect( r => {
         r.body.data.insert.todos.length.should.equal(2);
         r.body.data.insert.todos[0].todo.should.equal('item 1');
-        r.body.data.insert.todos[0].row_id.should.be.type('number');
+        r.body.data.insert.todos[0].id.should.be.type('number');
         r.body.data.insert.todos[1].todo.should.equal('item 2');
-        r.body.data.insert.todos[1].row_id.should.be.type('number');
+        r.body.data.insert.todos[1].id.should.be.type('number');
       })
       
   });
@@ -69,8 +69,8 @@ describe('write', function() {
         query: `
           mutation {
             update{
-              todo(row_id: 1, input: {todo: "new name 1"}){
-                row_id
+              todo(id: 1, input: {todo: "new name 1"}){
+                id
                 todo
               }
             }
@@ -82,8 +82,8 @@ describe('write', function() {
       .expect( r => {
         //r.body.data.items.length.should.equal(10);
         r.body.data.update.todo.todo.should.equal('new name 1');
-        r.body.data.update.todo.row_id.should.be.type('number');
-        r.body.data.update.todo.row_id.should.equal(1)
+        r.body.data.update.todo.id.should.be.type('number');
+        r.body.data.update.todo.id.should.equal(1)
       })
       
   });
@@ -96,8 +96,8 @@ describe('write', function() {
         query: `
           mutation {
             update{
-              todos(where: {row_id:{in:[2,3]}} input: {todo: "new name 2"}){
-                row_id
+              todos(where: {id:{in:[2,3]}} input: {todo: "new name 2"}){
+                id
                 todo
               }
             }
@@ -109,9 +109,9 @@ describe('write', function() {
       .expect( r => {
         r.body.data.update.todos.length.should.equal(2);
         r.body.data.update.todos[0].todo.should.equal('new name 2');
-        r.body.data.update.todos[0].row_id.should.be.type('number');
+        r.body.data.update.todos[0].id.should.be.type('number');
         r.body.data.update.todos[1].todo.should.equal('new name 2');
-        r.body.data.update.todos[1].row_id.should.be.type('number');
+        r.body.data.update.todos[1].id.should.be.type('number');
       })
       
   });
@@ -124,8 +124,8 @@ describe('write', function() {
         query: `
           mutation {
             delete{
-              todo(row_id:1){
-                row_id
+              todo(id:1){
+                id
                 todo
               }
             }
@@ -136,8 +136,8 @@ describe('write', function() {
       .expect(200, done)
       .expect( r => {
         r.body.data.delete.todo.todo.should.equal('new name 1');
-        r.body.data.delete.todo.row_id.should.be.type('number');
-        r.body.data.delete.todo.row_id.should.equal(1);
+        r.body.data.delete.todo.id.should.be.type('number');
+        r.body.data.delete.todo.id.should.equal(1);
       })
       
   });

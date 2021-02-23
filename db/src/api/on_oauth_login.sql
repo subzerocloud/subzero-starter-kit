@@ -5,8 +5,10 @@ declare
     _name text;
     token text;
     jwt_lifetime int;
+    jwt_secret text;
 begin
     jwt_lifetime := coalesce(current_setting('pgrst.jwt_lifetimet',true)::int, 3600);
+    jwt_secret := coalesce(settings.get('jwt_secret'), current_setting('pgrst.jwt_secret',true));
 
     -- check the jwt (generated in the proxy) is authorized to perform oauth logins
     if request.jwt_claim('oauth_login') != 'true' then
@@ -41,7 +43,7 @@ begin
             'user_id', usr.id,
             'exp', extract(epoch from now())::integer + jwt_lifetime
         ),
-        current_setting('pgrst.jwt_secret',true)
+        jwt_secret
     );
 
     -- set the session cookie and redirect to /
