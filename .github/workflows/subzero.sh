@@ -1,4 +1,7 @@
 #!/bin/bash
+
+# This is a helper script that implements some actions used in CI/CD configuration scripts
+
 IFS=
 check_configuration() {
     local CHECKS_FAILED=false

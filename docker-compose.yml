@@ -10,7 +10,7 @@ services:
     container_name: db
     image: postgres:${PG_VERSION}
     ports:
-      - "${PGPORT}:5432"
+      - "${DB_PORT}:5432"
     environment:
       # the values are defined in the .env file
       # env vars specific to postgres image used on first boot

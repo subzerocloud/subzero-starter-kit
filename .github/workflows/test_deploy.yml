@@ -5,7 +5,9 @@ name: ci
 # Run this workflow every time a new commit pushed to your repository
 on: 
   push:
-    branches: main
+    branches:
+      - main
+      - master
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 env:
@@ -18,15 +20,15 @@ env:
 
   # application settings
   APP_ID:
-  APP_DOMAIN:
+  APP_DOMAIN: ${{ secrets.APP_DOMAIN }}
   APP_NAME: "my application"
   APP_DB_HOST: ${{ secrets.APP_DB_HOST }}
-  APP_DB_PORT: 5432
+  APP_DB_PORT: ${{ secrets.APP_DB_PORT }}
   APP_DB_NAME: ${{ secrets.APP_DB_NAME }}
   APP_DB_MASTER_USER: ${{ secrets.APP_DB_MASTER_USER }}
   APP_DB_MASTER_PASSWORD: ${{ secrets.APP_DB_MASTER_PASSWORD }}
   APP_DB_AUTHENTICATOR_USER: ${{ secrets.APP_DB_AUTHENTICATOR_USER }}
-  APP_DB_AUTHENTICATOR_PASS: ${{ secrets.APP_DB_AUTHENTICATOR_PASS }}
+  APP_DB_AUTHENTICATOR_PASSWORD: ${{ secrets.APP_DB_AUTHENTICATOR_PASSWORD }}
   APP_DB_SCHEMA: api
   APP_DB_ANON_ROLE: anonymous
   APP_JWT_SECRET: ${{ secrets.APP_JWT_SECRET }}
@@ -35,11 +37,11 @@ env:
   UPLOAD_STATIC_FILES: false
   SFTP_HOST: sftp.app.subzero.cloud
   SFTP_PORT: 2323
-  SFTP_USER: ${{ secrets.SUBZERO_EMAIL }}.${{ env.APP_DOMAIN }}
+  SFTP_USER: ${{ secrets.SUBZERO_EMAIL }}.${{ secrets.APP_DOMAIN }}
   SFTP_PASSWORD: ${{ secrets.SUBZERO_PASSWORD }}
 
   # helper vars
-  MASTER_DB_CONNECTION_STRING: "${{ secrets.APP_DB_MASTER_USER }}:${{ secrets.APP_DB_MASTER_PASSWORD }}@${{ secrets.APP_DB_HOST }}:${{ env.APP_DB_PORT }}/${{ secrets.APP_DB_NAME }}?sslmode=prefer"
+  MASTER_DB_CONNECTION_STRING: "${{ secrets.APP_DB_MASTER_USER }}:${{ secrets.APP_DB_MASTER_PASSWORD }}@${{ secrets.APP_DB_HOST }}:${{ secrets.APP_DB_PORT }}/${{ secrets.APP_DB_NAME }}?sslmode=prefer"
   AUTHENTICATOR_DB_CONNECTION_STRING: "${{ secrets.APP_DB_AUTHENTICATOR_USER }}:${{ secrets.APP_DB_AUTHENTICATOR_PASSWORD }}@${{ secrets.APP_DB_HOST }}:${{ secrets.APP_DB_PORT }}/${{ secrets.APP_DB_NAME }}?sslmode=prefer"
   SUBZERO: ".github/workflows/subzero.sh"
 

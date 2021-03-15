@@ -30,7 +30,7 @@ begin
             raise exception 'unknown oauth provider';
     end case;
 
-    -- upsert the user to our database, we set the password to somethign random since the user will not be using only the outh login
+    -- upsert the user to our database, we set the password to something random since the user will be using only the oauth login
     insert into data."user" as u
     (name, email, password) values (_name, _email, gen_random_uuid())
     on conflict (email) do nothing
