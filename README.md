@@ -52,18 +52,11 @@ Run subZero stack as a hassle-free service ([free plan](https://subzero.cloud/pr
 * [subzero-cli](https://github.com/subzerocloud/subzero-cli#install)
 
 ### Create a New Project
-subzero-cli provides you with a `base-project` command that lets you create a new project structure:
+Click **[Use this template]** (green) button.
+Choose the name of your new repository, description and public/private state then click **[Create repository from template]** button.
+Check out the [step by step guide](https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template) if you encounter any problems.
 
-```bash
-subzero base-project
-
-? Enter the directory path where you want to create the project .
-? Choose the starter kit (Use arrow keys)
-❯ subzero-starter-kit (REST & GraphQL) 
-  postgrest-starter-kit (REST) 
-```
-
-After the files have been created, you can bring up your application (API).
+After this, clone the newly created repository to your computer.
 In the root folder of application, run the docker-compose command
 
 ```bash
@@ -156,7 +149,7 @@ Anyone and everyone is welcome to contribute.
 
 ## License
 
-Copyright © 2017-present subZero Cloud, LLC.<br />
+Copyright © 2017-2021 subZero Cloud, LLC.<br />
 This source code in this repository is licensed under [MIT](https://github.com/subzerocloud/subzero-starter-kit/blob/master/LICENSE.txt) license<br />
 Components implementing the GraphQL interface (customized PostgREST+ and OpenResty docker images) are available under a [commercial license](https://subzero.cloud)<br />
 The documentation to the project is licensed under the [CC BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/) license.
