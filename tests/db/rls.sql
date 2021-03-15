@@ -12,7 +12,7 @@ set local role anonymous;
 set request.jwt.claim.role = 'anonymous';
 
 select set_eq(
-    'select row_id from api.todos',
+    'select id from api.todos',
     array[ 1, 3, 6 ],
     'only public todos are visible to anonymous users'
 );
@@ -24,13 +24,13 @@ set request.jwt.claim.role = 'webuser';
 set request.jwt.claim.user_id = '1'; --alice
 
 select set_eq(
-    'select row_id from api.todos where mine = true',
+    'select id from api.todos where mine = true',
     array[ 1, 2, 3 ],
     'can see all his todos'
 );
 
 select set_eq(
-    'select row_id from api.todos',
+    'select id from api.todos',
     array[ 1, 2, 3, 6 ],
     'can see his todos and public ones'
 );

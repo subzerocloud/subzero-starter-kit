@@ -12,7 +12,6 @@ set client_min_messages to warning;
 \set jwt_secret `echo $JWT_SECRET`
 \set quoted_jwt_secret '\'' :jwt_secret '\''
 
-
 \echo # Loading database definition
 begin;
 create extension if not exists pgcrypto;
@@ -28,17 +27,8 @@ create extension if not exists pgcrypto;
 -- functions for for setting response headers and cookies
 \ir libs/response.sql
 
--- functions for sending messages to RabbitMQ entities
-\ir libs/rabbitmq.sql
-
 -- functions for JWT token generation in the database context
 \ir libs/pgjwt.sql
-
-
-
--- save app settings (they are storred in the settings.secrets table)
-select settings.set('jwt_secret', :quoted_jwt_secret);
-select settings.set('jwt_lifetime', '3600');
 
 
 \echo # Loading application definitions
@@ -57,6 +47,12 @@ select settings.set('jwt_lifetime', '3600');
 \echo # Loading roles and privilege settings
 \ir authorization/roles.sql
 \ir authorization/privileges.sql
+
+select settings.set('jwt_secret', :quoted_jwt_secret);
+select settings.set('jwt_lifetimet', '3600');
+-- alter role usually does nto work in cloud databases
+-- alter role :"authenticator" set pgrst.jwt_lifetimet = '3600';
+-- alter role :"authenticator" set pgrst.jwt_secret = :quoted_jwt_secret;
 
 \echo # Loading sample data
 \ir sample_data/data.sql

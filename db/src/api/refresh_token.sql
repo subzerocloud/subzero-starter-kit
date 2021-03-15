@@ -2,8 +2,11 @@ create or replace function refresh_token() returns boolean as $$
 declare
     usr record;
     token text;
-    cookie text;
+    jwt_lifetime int;
+    jwt_secret text;
 begin
+    jwt_lifetime := coalesce(current_setting('pgrst.jwt_lifetimet',true)::int, 3600);
+    jwt_secret := coalesce(settings.get('jwt_secret'), current_setting('pgrst.jwt_secret',true));
 
     select * from data."user" as u
     where id = request.user_id()
@@ -16,11 +19,11 @@ begin
             json_build_object(
                 'role', usr.role,
                 'user_id', usr.id,
-                'exp', extract(epoch from now())::integer + settings.get('jwt_lifetime')::int
+                'exp', extract(epoch from now())::integer + jwt_lifetime
             ),
-            settings.get('jwt_secret')
+            jwt_secret
         );
-        perform response.set_cookie('SESSIONID', token, settings.get('jwt_lifetime')::int,'/');
+        perform response.set_cookie('SESSIONID', token, jwt_lifetime, '/');
         return true;
     end if;
 end

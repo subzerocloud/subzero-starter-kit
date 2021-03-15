@@ -3,7 +3,12 @@ declare
     usr record;
     token text;
     cookie text;
+    jwt_lifetime int;
+    jwt_secret text;
 begin
+    jwt_lifetime := coalesce(current_setting('pgrst.jwt_lifetimet',true)::int, 3600);
+    jwt_secret := coalesce(settings.get('jwt_secret'), current_setting('pgrst.jwt_secret',true));
+
     insert into data."user" as u
     (name, email, password) values ($1, $2, $3)
     returning *
@@ -13,12 +18,12 @@ begin
         json_build_object(
             'role', usr.role,
             'user_id', usr.id,
-            'exp', extract(epoch from now())::integer + settings.get('jwt_lifetime')::int
+            'exp', extract(epoch from now())::integer + jwt_lifetime
         ),
-        settings.get('jwt_secret')
+        jwt_secret
     );
-    perform response.set_cookie('SESSIONID', token, settings.get('jwt_lifetime')::int,'/');
-     return (
+    perform response.set_cookie('SESSIONID', token, jwt_lifetime, '/');
+    return (
         usr.id,
         usr.name,
         usr.email,

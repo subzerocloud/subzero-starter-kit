@@ -1,20 +1,18 @@
 {
-  "name": "starter-kit",
+  "name": "subzero-starter-kit-tests",
   "dependencies": {},
   "devDependencies": {
-    "babel-core": "^6.24.0",
-    "babel-preset-latest": "^6.24.1",
     "dotenv": "4.0.0",
     "jsonwebtoken": "^8.3.0",
-    "mocha": "^6.2.0",
+    "mocha": "^8.2.1",
     "should": "^11.2.0",
     "supertest": "^3.0.0"
   },
   "scripts": {
-    "test_graphql": "mocha  --no-timeouts --require babel-core/register ./tests/graphql/",
-    "test_rest": "mocha --no-timeouts --require babel-core/register ./tests/rest/",
+    "test_graphql": "mocha  --no-timeouts ./tests/graphql/",
+    "test_rest": "mocha --no-timeouts ./tests/rest/",
     "test_db": "node tests/bin/test_db.js",
-    "test": "npm run test_db && npm run test_rest && npm run test_graphql"
+    "test": "$npm_execpath run test_db && $npm_execpath run test_rest && $npm_execpath run test_graphql"
   },
   "author": "ruslan.talpa@subzero.cloud",
   "license": "ISC"
