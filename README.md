@@ -10,6 +10,7 @@ Run subZero stack as a hassle-free service ([free plan](https://subzero.cloud/pr
 
 ✓ Out of the box GraphQL/REST endpoints created by reflection over a PostgreSQL schema<br>
 ✓ Authentication using email/password or using 3rd party OAuth 2.0 providers (google/facebook/github preconfigured) <br>
+✓ Uses [PostgREST+](https://subzero.cloud/postgrest-plus.html) with features like aggregate functions (group by), window functions, SSL, HTTP2, custom relations<br>
 ✓ Cross-platform development on macOS, Windows or Linux inside [Docker](https://www.docker.com/)<br>
 ✓ [PostgreSQL](https://www.postgresql.org/) database schema boilerplate with authentication and authorization flow<br>
 ✓ Debugging and live code reloading (sql/configs/lua) functionality using [subzero-cli](https://github.com/subzerocloud/subzero-cli)<br>
@@ -17,7 +18,7 @@ Run subZero stack as a hassle-free service ([free plan](https://subzero.cloud/pr
 ✓ SQL unit test using [pgTAP](http://pgtap.org/)<br>
 ✓ Integration tests with [SuperTest / Mocha](https://github.com/visionmedia/supertest)<br>
 ✓ Community support on [Slack](https://slack.subzero.cloud/)<br>
-✓ Uses [PostgREST+](https://subzero.cloud/postgrest-plus.html) that supports features like aggregate functions (group by), window functions, SSL, HTTP2 and many more<br>
+
 ✓ Scriptable proxy level caching using nginx [proxy_cache](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache) or Redis<br>
 
 ## Directory Layout
