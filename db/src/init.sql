@@ -30,6 +30,9 @@ create extension if not exists pgcrypto;
 -- functions for JWT token generation in the database context
 \ir libs/pgjwt.sql
 
+-- functions that will trigger schema cache reload
+\ir libs/postgrest.sql
+
 
 \echo # Loading application definitions
 
