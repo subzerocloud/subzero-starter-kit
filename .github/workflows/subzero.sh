@@ -7,7 +7,7 @@ check_configuration() {
     local CHECKS_FAILED=false
     echo "checking configuration"
     # check all needed variables are set
-    for ENV_VAR in APP_NAME APP_DOMAIN APP_DB_MASTER_USER APP_DB_MASTER_PASSWORD APP_DB_HOST APP_DB_PORT APP_DB_NAME APP_DB_AUTHENTICATOR_USER APP_DB_AUTHENTICATOR_PASS APP_JWT_SECRET APP_DB_SCHEMA APP_DB_ANON_ROLE
+    for ENV_VAR in APP_NAME APP_DOMAIN APP_DB_MASTER_USER APP_DB_MASTER_PASSWORD APP_DB_HOST APP_DB_PORT APP_DB_NAME APP_DB_AUTHENTICATOR_USER APP_DB_AUTHENTICATOR_PASSWORD APP_JWT_SECRET APP_DB_SCHEMA APP_DB_ANON_ROLE
     do
     if [ -z ${!ENV_VAR} ]; then echo "${ENV_VAR} is unset"; CHECKS_FAILED=true; fi
     done
@@ -110,7 +110,7 @@ update_configuration(){
             --arg db_port "$APP_DB_PORT" \
             --arg db_name "$APP_DB_NAME" \
             --arg db_authenticator "$APP_DB_AUTHENTICATOR_USER" \
-            --arg db_authenticator_pass "$APP_DB_AUTHENTICATOR_PASS" \
+            --arg db_authenticator_pass "$APP_DB_AUTHENTICATOR_PASSWORD" \
             --arg db_schema "$APP_DB_SCHEMA" \
             --arg db_anon_role "$APP_DB_ANON_ROLE" \
             --arg jwt_secret "$APP_JWT_SECRET" \
@@ -164,7 +164,7 @@ create_application(){
                 --arg db_port "$APP_DB_PORT" \
                 --arg db_name "$APP_DB_NAME" \
                 --arg db_authenticator "$APP_DB_AUTHENTICATOR_USER" \
-                --arg db_authenticator_pass "$APP_DB_AUTHENTICATOR_PASS" \
+                --arg db_authenticator_pass "$APP_DB_AUTHENTICATOR_PASSWORD" \
                 --arg db_schema "$APP_DB_SCHEMA" \
                 --arg db_anon_role "$APP_DB_ANON_ROLE" \
                 --arg jwt_secret "$APP_JWT_SECRET" \
