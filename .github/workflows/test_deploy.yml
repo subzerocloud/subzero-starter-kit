@@ -94,7 +94,7 @@ jobs:
 
       - name: setup authenticator db role
         run: |
-          $SUBZERO setup_authenticator_role "$APP_DB_AUTHENTICATOR_USER" "$APP_DB_AUTHENTICATOR_PASS" "postgres://$MASTER_DB_CONNECTION_STRING"
+          $SUBZERO setup_authenticator_role "$APP_DB_AUTHENTICATOR_USER" "$APP_DB_AUTHENTICATOR_PASSWORD" "postgres://$MASTER_DB_CONNECTION_STRING"
 
       - name: setup subzero app
         if: ${{ env.DEPLOY_TARGET == 'subzerocloud' && ! env.APP_ID }}
@@ -119,7 +119,7 @@ jobs:
 
       - name: update authenticator role password
         run: |
-          $SUBZERO update_authenticator_role_password "$APP_DB_AUTHENTICATOR_USER" "$APP_DB_AUTHENTICATOR_PASS" "postgres://$MASTER_DB_CONNECTION_STRING"
+          $SUBZERO update_authenticator_role_password "$APP_DB_AUTHENTICATOR_USER" "$APP_DB_AUTHENTICATOR_PASSWORD" "postgres://$MASTER_DB_CONNECTION_STRING"
 
       - name: trigger subzero.cloud schema cache refresh
         if: ${{ env.DEPLOY_TARGET == 'subzerocloud' }}
