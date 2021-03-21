@@ -78,6 +78,7 @@ jobs:
 
       - name: check correct configuration
         run: |
+          chmod +x $SUBZERO
           $SUBZERO check_configuration
           $SUBZERO check_database_connection "postgres://$MASTER_DB_CONNECTION_STRING"
 
@@ -88,7 +89,7 @@ jobs:
       - name: install dependencies
         run: |
           # apt-get update -y
-          apt-get install -y sshpass sqitch
+          sudo apt-get install -y sshpass sqitch
           # docker pull sqitch/sqitch
           # curl -s -L https://git.io/JJKCn -o /usr/local/bin/sqitch && chmod +x /usr/local/bin/sqitch
 
