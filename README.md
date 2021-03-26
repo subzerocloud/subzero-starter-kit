@@ -122,17 +122,17 @@ Note that the deploy action pushes to production the database migrations (db/mig
 
 You'll also need to configure the following "secrets" for your github deploy action
 ```
-PRODUCTION_DB_MASTER_USER
-PRODUCTION_DB_MASTER_PASSWORD
-PRODUCTION_DB_HOST
-PRODUCTION_DB_PORT
-PRODUCTION_DB_NAME
-SFTP_USER
-SFTP_PASSWORD
-SUBZERO_PASSWORD
 SUBZERO_EMAIL
 SUBZERO_PASSWORD
-SUBZERO_APPLICATION_ID
+APP_DOMAIN
+APP_DB_HOST
+APP_DB_PORT
+APP_DB_NAME
+APP_DB_MASTER_USER
+APP_DB_MASTER_PASSWORD
+APP_DB_AUTHENTICATOR_USER
+APP_DB_AUTHENTICATOR_PASSWORD
+APP_JWT_SECRET
 ```
 
 While the deploy action is written for subzero.cloud (`DEPLOY_TARGET: subzerocloud`) it can easily be adapted for other deploy targets that run the subzero stack
