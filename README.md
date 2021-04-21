@@ -8,7 +8,7 @@ Run subZero stack as a hassle-free service ([free plan](https://subzero.cloud/pr
 
 ## Features
 
-✓ Out of the box GraphQL/REST endpoints created by reflection over a PostgreSQL schema<br>
+✓ Out of the box GraphQL/REST/OData endpoints created by reflection over a PostgreSQL schema<br>
 ✓ Authentication using email/password or using 3rd party OAuth 2.0 providers (google/facebook/github preconfigured) <br>
 ✓ Uses [PostgREST+](https://subzero.cloud/postgrest-plus.html) with features like aggregate functions (group by), window functions, SSL, HTTP2, custom relations<br>
 ✓ Cross-platform development on macOS, Windows or Linux inside [Docker](https://www.docker.com/)<br>
@@ -70,6 +70,7 @@ The API server will become available at the following endpoints:
 - REST [http://localhost:8080/rest/](http://localhost:8080/rest/)
 - GraphQL Simple Schema [http://localhost:8080/graphql/simple/](http://localhost:8080/graphql/simple/)
 - GraphQL Relay Schema [http://localhost:8080/graphql/relay/](http://localhost:8080/graphql/relay/)
+- OData v4 (experimental) [http://localhost:8080/odata/](http://localhost:8080/graphql/relay/)
 
 Try a simple request
 
