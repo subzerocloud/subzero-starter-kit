@@ -26,8 +26,15 @@ check_configuration() {
     done
     fi
 
+    if [ "$DEPLOY_TARGET" = "fargate" ]; then
+    for ENV_VAR in AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY AWS_DEFAULT_REGION AWS_VPC_ID AWS_SUBNET_ID
+    do
+        if [ -z ${!ENV_VAR} ]; then echo "${ENV_VAR} is unset"; CHECKS_FAILED=true; fi
+    done
+    fi
+
     # check migrations folder present
-    if [ ! -f ./db/migrations/sqitch.plan ]; then
+    if [ $DEPLOY_DATABASE_MIGRATIONS ] && [ ! -f ./db/migrations/sqitch.plan ]; then
         echo "Migrations folder missing, please run 'subzero migrations init --with-roles'"
         CHECKS_FAILED=true
     fi

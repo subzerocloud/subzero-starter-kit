@@ -1,0 +1,409 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Deploy a service on AWS Fargate, hosted in a private subnet, but accessible via a public load balancer.
+Parameters:
+  DomainName:
+    Type: String
+  VpcId:
+    Type: String
+  SubnetId:
+    Type: String
+  DbHost:
+    Type: String
+  DbPort:
+    Type: String
+  DbName:
+    Type: String
+  DbAuthenticatorUser:
+    Type: String
+  DbAuthenticatorUserPass:
+    Type: String
+  DbSchema:
+    Type: String
+  DbAnonRole:
+    Type: String
+  JwtSecret:
+    Type: String
+
+  EnvironmentName:
+    Type: String
+    Default: production
+    Description: The name of the environment to add this service to
+  ServiceName:
+    Type: String
+    Default: subzero
+    Description: A name for the service
+  ImageUrl:
+    Type: String
+    Default: subzerocloud/subzero-development:latest
+    Description: The url of a docker image that contains the application process that
+                 will handle the traffic for this service
+  ContainerCpu:
+    Type: Number
+    Default: 256
+    Description: How much CPU to give the container. 1024 is 1 CPU
+  ContainerMemory:
+    Type: Number
+    Default: 512
+    Description: How much memory in megabytes to give the container
+  Route53ZoneId:
+    Type: String
+    Default: ""
+    Description: (Optional) Route53 zone id where to add the dns A record for the deployed container
+
+Conditions:
+  NoRoute53ZoneId: !Equals [!Ref 'Route53ZoneId', '']
+
+Resources:
+  # A log group for storing the stdout logs from this service's containers
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub ${EnvironmentName}-service-${ServiceName}
+
+  DNS: 
+    Type: "AWS::Route53::HostedZone"
+    Condition: NoRoute53ZoneId
+    Properties: 
+      Name: !Ref 'DomainName'
+
+  # The task definition. This is a simple metadata description of what
+  # container to run, and what resource requirements it has.
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Ref 'ServiceName'
+      Cpu: !Ref 'ContainerCpu'
+      Memory: !Ref 'ContainerMemory'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      ExecutionRoleArn: !Ref 'ECSTaskExecutionRole'
+        # Fn::ImportValue: !Sub ${EnvironmentName}:ECSTaskExecutionRole
+      ContainerDefinitions:
+        - Name: !Ref 'ServiceName'
+          Cpu: !Ref 'ContainerCpu'
+          Memory: !Ref 'ContainerMemory'
+          Image: !Ref 'ImageUrl'
+          PortMappings:
+            - ContainerPort: 80
+            - ContainerPort: 443
+          Environment:
+            # postgrest settings
+            - Name: PGRST_DB_URI
+              Value: !Join ["", ["postgres://",!Ref DbAuthenticatorUser,":",!Ref DbAuthenticatorUserPass,"@",!Ref DbHost,":",!Ref DbPort,"/",!Ref DbName, "?application_name=pgrst"]]
+            - Name: PGRST_DB_SCHEMA
+              Value: !Ref 'DbSchema'
+            - Name: PGRST_DB_ANON_ROLE
+              Value: !Ref 'DbAnonRole'
+            - Name: PGRST_DB_POOL
+              Value: 10
+            - Name: PGRST_DB_POOL_TIMEOUT
+              Value: 300
+            - Name: PGRST_JWT_SECRET
+              Value: !Ref 'JwtSecret'
+            - Name: PGRST_DB_CHANNEL
+              Value: pgrst
+            - Name: PGRST_DB_CHANNEL_ENABLED
+              Value: true
+            # uncomment to also see postgrest output in the logs
+            # - Name: PGRST_LOGFILE
+            #   Value: /dev/fd/1
+            # - Name: PGRST_LOG_LEVEL
+            #   Value: info
+          
+            # openresty settings
+            - Name: DB_HOST
+              Value: !Ref DbHost
+            - Name: DB_PORT
+              Value: !Ref DbPort
+            - Name: DB_NAME
+              Value: !Ref DbName
+            - Name: DB_SCHEMA
+              Value: !Ref DbSchema
+            - Name: ERR_LOGLEVEL
+              Value: "error"
+            - Name: DB_USER
+              Value: !Ref 'DbAuthenticatorUser'
+            - Name: DB_PASS
+              Value: !Ref 'DbAuthenticatorUserPass'
+            - Name: JWT_SECRET
+              Value: !Ref JwtSecret
+            - Name: DEVELOPMENT
+              Value: "0"
+            - Name: OAUTH_SUCCESS_URI
+              Value: /auth/on_oauth_login
+          LogConfiguration:
+            LogDriver: 'awslogs'
+            Options:
+              awslogs-group: !Sub ${EnvironmentName}-service-${ServiceName}
+              awslogs-region: !Ref 'AWS::Region'
+              awslogs-stream-prefix: !Ref 'ServiceName'
+      Tags:
+        - Key: domain
+          Value: !Ref 'DomainName'
+        - Key: hostedZoneId
+          Value:
+            Fn::If:
+            - 'NoRoute53ZoneId'
+            - !Ref 'DNS'
+            - !Ref 'Route53ZoneId'
+            
+
+  # The service. The service is a resource which allows you to run multiple
+  # copies of a type of task, and gather up their logs and metrics, as well
+  # as monitor the number of running tasks and replace any that have crashed
+  Service:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: !Ref 'ServiceName'
+      Cluster: !Ref 'ECSCluster'
+      LaunchType: FARGATE
+      DeploymentConfiguration:
+        MaximumPercent: 200
+        MinimumHealthyPercent: 75
+      DesiredCount: 1
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - !Ref 'ContainerSecurityGroup'
+          Subnets:
+            - !Ref 'SubnetId'
+      TaskDefinition: !Ref 'TaskDefinition'
+
+
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: test-fargate
+  
+  # A security group for the containers we will run in Fargate.
+  # Rules are added to this security group based on what ingress you
+  # add for the cluster.
+  ContainerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Access to the Fargate containers
+      VpcId: !Ref 'VpcId'
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+      - IpProtocol: tcp
+        FromPort: 443
+        ToPort: 443
+        CidrIp: 0.0.0.0/0
+      SecurityGroupEgress:
+      - IpProtocol: -1
+        CidrIp: 0.0.0.0/0
+
+  # This is a role which is used by the ECS tasks themselves.
+  ECSTaskExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: [ecs-tasks.amazonaws.com]
+          Action: ['sts:AssumeRole']
+      Path: /
+      Policies:
+        - PolicyName: AmazonECSTaskExecutionRolePolicy
+          PolicyDocument:
+            Statement:
+            - Effect: Allow
+              Action:
+                # Allow the ECS Tasks to download images from ECR
+                - 'ecr:GetAuthorizationToken'
+                - 'ecr:BatchCheckLayerAvailability'
+                - 'ecr:GetDownloadUrlForLayer'
+                - 'ecr:BatchGetImage'
+
+                # Allow the ECS tasks to upload logs to CloudWatch
+                - 'logs:CreateLogStream'
+                - 'logs:PutLogEvents'
+              Resource: '*'
+
+
+  LambdaExecutionRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      Policies:
+        -
+          PolicyName: "lambda-inline"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: "Allow"
+                Action:
+                  - "ec2:DescribeNetworkInterfaces"
+                  - "ecs:DescribeClusters"
+                  - "ecs:ListTagsForResource"
+                  - "route53:ChangeResourceRecordSets"
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: "*"
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "lambda.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+
+  TriggerLambdaRule: 
+    Type: AWS::Events::Rule
+    Properties: 
+      Description: "TriggerLambdaRule"
+      EventPattern: 
+        source: 
+          - "aws.ecs"
+        detail-type: 
+          - "ECS Task State Change"
+        detail: 
+          desiredStatus:
+            - "RUNNING"
+          lastStatus:
+            - "RUNNING"
+      State: "ENABLED"
+      Targets: 
+        - 
+          Arn: 
+            Fn::GetAtt: 
+              - "RegisterPublicIp"
+              - "Arn"
+          Id: "TargetFunctionV1"
+  
+  PermissionForEventsToInvokeLambda: 
+    Type: AWS::Lambda::Permission
+    Properties: 
+      FunctionName: !Ref "RegisterPublicIp"
+      Action: "lambda:InvokeFunction"
+      Principal: "events.amazonaws.com"
+      SourceArn: 
+        Fn::GetAtt: 
+          - "TriggerLambdaRule"
+          - "Arn"
+  
+  # This lambda function gets triggered on new deployments and updates the DNS A record with the new ip
+  RegisterPublicIp:
+    Type: "AWS::Lambda::Function"
+    Properties:
+      Handler: index.handler
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Runtime: nodejs12.x
+      MemorySize: 128
+      Code:
+        ZipFile: |
+            'use strict';
+            const AWS = require('aws-sdk');
+            const ec2 = new AWS.EC2();
+            const ecs = new AWS.ECS();
+            const route53 = new AWS.Route53();
+
+            exports.handler = async (event, context, callback) => {
+                console.log('Received event: %j', event);
+
+                const task = event.detail;
+                const taskDefinitionArn = task.taskDefinitionArn;
+                console.log(`taskDefinitionArn: ${taskDefinitionArn}`)
+                const tags = await fetchTaskDefinitionTags(taskDefinitionArn)
+                const domain = tags['domain']
+                const hostedZoneId = tags['hostedZoneId']
+
+                console.log(`domain: ${domain}, hostedZone: ${hostedZoneId}`)
+
+                if (!domain || !hostedZoneId) {
+                    console.log(`Skipping. Reason: no "domain" and/or "hostedZoneId" tags found for cluster ${clusterArn}`);
+                    return;
+                }
+                
+                const eniId = getEniId(task);
+                if (!eniId) {
+                    console.log('Network interface not found');
+                    return;
+                }
+
+                const taskPublicIp = await fetchEniPublicIp(eniId)
+                const serviceName = task.group.split(":")[1]
+                console.log(`task:${serviceName} public-id: ${taskPublicIp}`)
+
+                //const containerDomain = `${serviceName}.${domain}`
+                const containerDomain = `${domain}`
+                const recordSet = createRecordSet(containerDomain, taskPublicIp)
+
+                await updateDnsRecord(hostedZoneId, recordSet)
+                console.log(`DNS record update finished for ${containerDomain} (${taskPublicIp})`)
+            };
+
+            async function fetchTaskDefinitionTags(arn) {
+                const response = await ecs.listTagsForResource({
+                    resourceArn: arn
+                }).promise()
+                return response.tags.reduce(function(hash, tag) {
+                    var key = tag['key'];
+                    hash[key] = tag['value'];
+                    return hash;
+                  }, {})
+            }
+
+            function getEniId(task) {
+
+                return task.attachments.filter(function(attachment) {
+                    return attachment.type === 'eni'
+                })
+                .map(function(eniAttachment){
+                  return eniAttachment.details.filter(function(details) {
+                        return details.name === 'networkInterfaceId'
+                  })
+                  .map(function(details) {
+                        return details.value
+                  })[0]
+                })[0]
+            }
+
+            async function fetchEniPublicIp(eniId) {
+                const data = await ec2.describeNetworkInterfaces({
+                    NetworkInterfaceIds: [
+                        eniId
+                    ]
+                }).promise();
+
+                return data.NetworkInterfaces[0].PrivateIpAddresses[0].Association.PublicIp;
+            }
+
+            function createRecordSet(domain, publicIp) {
+                return {
+                    "Action": "UPSERT",
+                    "ResourceRecordSet": {
+                        "Name": domain,
+                        "Type": "A",
+                        "TTL": 180,
+                        "ResourceRecords": [
+                            {
+                                "Value": publicIp
+                            }
+                        ]
+                    }
+                }
+            }
+
+            async function updateDnsRecord(hostedZoneId, changeRecordSet) {
+                let param = {
+                    ChangeBatch: {
+                        "Comment": `Auto generated Record for ECS Fargate`,
+                        "Changes": [changeRecordSet]
+                    },
+                    HostedZoneId: hostedZoneId
+                };
+                const updateResult = await route53.changeResourceRecordSets(param).promise();
+                console.log('updateResult: %j', updateResult);
+            }
+

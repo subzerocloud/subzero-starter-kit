@@ -11,12 +11,23 @@ on:
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 env:
-  DEPLOY_TARGET: subzerocloud
+  # target value can be subzerocloud or fargate
+  DEPLOY_TARGET: fargate
+
+  # set to false if the database state is managed by external tooling
+  DEPLOY_DATABASE_MIGRATIONS: true
 
   # subzero.cloud settings
   SUBZERO_API_ENDPOINT: https://app.subzero.cloud
   SUBZERO_EMAIL: ${{ secrets.SUBZERO_EMAIL }}
   SUBZERO_PASSWORD: ${{ secrets.SUBZERO_PASSWORD }}
+
+  # AWS settings
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+  AWS_VPC_ID: ${{ secrets.AWS_VPC_ID }}
+  AWS_SUBNET_ID: ${{ secrets.AWS_SUBNET_ID }}
 
   # application settings
   APP_ID:
@@ -80,7 +91,9 @@ jobs:
         run: |
           chmod +x $SUBZERO
           $SUBZERO check_configuration
-          $SUBZERO check_database_connection "postgres://$MASTER_DB_CONNECTION_STRING"
+          if [ $DEPLOY_DATABASE_MIGRATIONS ]; then
+            $SUBZERO check_database_connection "postgres://$MASTER_DB_CONNECTION_STRING"
+          fi
 
       - name: login to subzero.cloud
         if: ${{ env.DEPLOY_TARGET == 'subzerocloud' }}
@@ -94,6 +107,7 @@ jobs:
           # curl -s -L https://git.io/JJKCn -o /usr/local/bin/sqitch && chmod +x /usr/local/bin/sqitch
 
       - name: setup authenticator db role
+        if: ${{ env.DEPLOY_DATABASE_MIGRATIONS == 'true' }}
         run: |
           $SUBZERO setup_authenticator_role "$APP_DB_AUTHENTICATOR_USER" "$APP_DB_AUTHENTICATOR_PASSWORD" "postgres://$MASTER_DB_CONNECTION_STRING"
 
@@ -103,6 +117,7 @@ jobs:
           $SUBZERO create_application
 
       - name: deploy database migrations
+        if: ${{ env.DEPLOY_DATABASE_MIGRATIONS == 'true' }}
         working-directory: ./db/migrations
         run: |
           sqitch deploy "db:pg://$MASTER_DB_CONNECTION_STRING"
@@ -114,11 +129,13 @@ jobs:
           sshpass -p "$SFTP_PASSWORD" scp -o StrictHostKeyChecking=no -P $SFTP_PORT -r ./ $SFTP_USER@$SFTP_HOST:/
 
       - name: store jwt secret in database
+        if: ${{ env.DEPLOY_DATABASE_MIGRATIONS == 'true' }}
         run: |
           # $SUBZERO store_jwt_secret_as_guc "$APP_DB_AUTHENTICATOR_USER" "$APP_JWT_SECRET" "postgres://$MASTER_DB_CONNECTION_STRING"
           $SUBZERO store_jwt_secret_in_settings "$APP_DB_AUTHENTICATOR_USER" "$APP_JWT_SECRET" "postgres://$MASTER_DB_CONNECTION_STRING"
 
       - name: update authenticator role password
+        if: ${{ env.DEPLOY_DATABASE_MIGRATIONS == 'true' }}
         run: |
           $SUBZERO update_authenticator_role_password "$APP_DB_AUTHENTICATOR_USER" "$APP_DB_AUTHENTICATOR_PASSWORD" "postgres://$MASTER_DB_CONNECTION_STRING"
 
@@ -130,3 +147,28 @@ jobs:
 
           # you can also use this to trigger schema refresh without updating the configuration
           $SUBZERO reload_db_schema
+
+      - name: deploy container to fargate
+        if: ${{ env.DEPLOY_TARGET == 'fargate' }}
+        run: |
+          CLOUDFORMATION_ACTION=create-stack
+          CLOUDFORMATION_STACK_NAME=${APP_DOMAIN/./-}
+          if aws cloudformation describe-stacks --stack-name $CLOUDFORMATION_STACK_NAME ; then
+            CLOUDFORMATION_ACTION=update-stack
+          fi
+          echo "ready to run deploy to fargate $CLOUDFORMATION_ACTION"
+          # aws cloudformation $CLOUDFORMATION_ACTION \
+          #   --stack-name $CLOUDFORMATION_STACK_NAME \
+          #   --template-body file://.github/workflows/fargate_single_container.yml
+          #   --parameters \
+          #       ParameterKey=VpcId,ParameterValue=$AWS_VPC_ID \
+          #       ParameterKey=SubnetId,ParameterValue=$AWS_SUBNET_ID \
+          #       ParameterKey=DomainName,ParameterValue=$APP_DOMAIN \
+          #       ParameterKey=DbHost,ParameterValue=$APP_DB_HOST \
+          #       ParameterKey=DbPort,ParameterValue=$APP_DB_PORT \
+          #       ParameterKey=DbName,ParameterValue=$APP_DB_NAME \
+          #       ParameterKey=DbAuthenticatorUser,ParameterValue=$APP_DB_AUTHENTICATOR_USER \
+          #       ParameterKey=DbAuthenticatorUserPass,ParameterValue=$APP_DB_AUTHENTICATOR_PASSWORD \
+          #       ParameterKey=DbSchema,ParameterValue=$APP_DB_SCHEMA \
+          #       ParameterKey=DbAnonRole,ParameterValue=$APP_DB_ANON_ROLE \
+          #       ParameterKey=JwtSecret,ParameterValue=$APP_JWT_SECRET
