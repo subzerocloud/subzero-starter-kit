@@ -1,13 +1,101 @@
 
 AWSTemplateFormatVersion: '2010-09-09'
-Description: Deploy a service on AWS Fargate, hosted in a private subnet, but accessible via a public load balancer.
+Description: Deploy subZero to AWS Fargate.
+
+Metadata: 
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      
+      - 
+        Label: 
+          default: "Database Configuration"
+        Parameters: 
+          - DbHost
+          - DbPort
+          - DbName
+          - DbAuthenticatorUser
+          - DbAuthenticatorUserPass
+          - DbSchema
+          - DbAnonRole
+          - JwtSecret
+      - 
+        Label: 
+          default: "Network Configuration"
+        Parameters: 
+          - VpcId
+          - SubnetId
+          - Route53ZoneId
+          - DomainName
+          - AllowedSSLDomainNames
+      - 
+        Label: 
+          default: "subZero Account"
+        Parameters:
+          - EnvironmentName
+          - SubzeroEmail
+          - SubzeroPassword
+      # - 
+      #   Label: 
+      #     default: "Advanced"
+      #   Parameters: 
+      #     - ServiceName
+      #     - ContainerCpu
+      #     - ContainerMemory
+
+
+    ParameterLabels: 
+      EnvironmentName:
+        default: "Deploy type"
+      SubzeroEmail:
+        default: "subZero account email"
+      SubzeroPassword:
+        default: "subZero account password"
+      DbHost:
+        default: "Host"
+      DbPort:
+        default: "Port"
+      DbName:
+        default: "Database name"
+      DbAuthenticatorUser:
+        default: "Authenticator username"
+      DbAuthenticatorUserPass:
+        default: "Authenticator password"
+      DbSchema:
+        default: "Schema"
+      DbAnonRole:
+        default: "Anonymous role"
+      JwtSecret:
+        default: "JWT Secret"
+      VpcId:
+        default: "Virtual Private Cloud (VPC)"
+      SubnetId:
+        default: "Subnet Id"
+      DomainName:
+        default: "Domain name"
+      ServiceName:
+        default: ""
+      Route53ZoneId:
+        default: "Route 53 zone id"
+      ContainerCpu:
+        default: "Container cpu"
+      ContainerMemory:
+        default: "Container memory"
+      AllowedSSLDomainNames:
+        default: Allowed SSL domain names
+
 Parameters:
   DomainName:
     Type: String
+    Description: Type the domain name for this deployment. You'll need to update the domain registration to use Amazon Route 53 name servers from the domains zone
+  AllowedSSLDomainNames:
+    Type: String
+    Default: ""
+    Description: The list of domain names separated by comma for which an SSL certificate will be generated (based on SNI). Leave blank to match any domain.
   VpcId:
-    Type: String
+    Type: AWS::EC2::VPC::Id
+    Description: Select the VPC and subnet where to deploy the container
   SubnetId:
-    Type: String
+    Type: AWS::EC2::Subnet::Id  
   DbHost:
     Type: String
   DbPort:
@@ -15,27 +103,49 @@ Parameters:
   DbName:
     Type: String
   DbAuthenticatorUser:
+    Description: Type a name for the authenticator user (used by subzero to connect).
     Type: String
   DbAuthenticatorUserPass:
+    Description: Type in the authenticator user password
     Type: String
   DbSchema:
+    Description: Type the name of the schema to expose for the api
     Type: String
   DbAnonRole:
+    Description: Type a role name for anonymous user (used by subzero to execute unauthenticated requests).
     Type: String
   JwtSecret:
+    Description: Type the JWT secret used to verify JWT tokens.
     Type: String
-
+    MinLength: '32'
   EnvironmentName:
     Type: String
-    Default: production
-    Description: The name of the environment to add this service to
+    Default: development
+    AllowedValues:
+      - development
+      - production
+  SubzeroEmail:
+    Type: String
+    Description: (Optional) subZero account email. Used to download the production container image
+    Default: ""
+  SubzeroPassword:
+    Type: String
+    Description: (Optional) subZero account password. Used to download the production container image
+    Default: ""
+
   ServiceName:
     Type: String
     Default: subzero
-    Description: A name for the service
-  ImageUrl:
+    Description: The name of the fargate service
+  
+  DevelopmentImageUrl:
     Type: String
     Default: subzerocloud/subzero-development:latest
+    Description: The url of a docker image that contains the application process that
+                 will handle the traffic for this service
+  ProductionImageUrl:
+    Type: String
+    Default: registry.subzero.cloud/subzero:latest
     Description: The url of a docker image that contains the application process that
                  will handle the traffic for this service
   ContainerCpu:
@@ -47,12 +157,14 @@ Parameters:
     Default: 512
     Description: How much memory in megabytes to give the container
   Route53ZoneId:
-    Type: String
+    Type: AWS::Route53::HostedZone::Id
     Default: ""
-    Description: (Optional) Route53 zone id where to add the dns A record for the deployed container
-
+    Description: (Optional) Route53 zone id where to add the dns A record for the deployed container.
+                 Leave it blank to create a new zone for the domain name.
+  
 Conditions:
   NoRoute53ZoneId: !Equals [!Ref 'Route53ZoneId', '']
+  IsProduction: !Equals [!Ref 'EnvironmentName', 'production']
 
 Resources:
   # A log group for storing the stdout logs from this service's containers
@@ -60,6 +172,15 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub ${EnvironmentName}-service-${ServiceName}
+
+  SubzeroRegistryCredentials:
+    Type: 'AWS::SecretsManager::Secret'
+    Condition: IsProduction
+    Properties:
+      Name: SubzroRegistryCredentials
+      Description: "subZero registry credentials for fetching the production image"
+      SecretString: !Join [ "", ['{"username":"', !Ref 'SubzeroEmail', '","password":"', !Ref 'SubzeroPassword' ,'"}']]
+
 
   DNS: 
     Type: "AWS::Route53::HostedZone"
@@ -84,7 +205,16 @@ Resources:
         - Name: !Ref 'ServiceName'
           Cpu: !Ref 'ContainerCpu'
           Memory: !Ref 'ContainerMemory'
-          Image: !Ref 'ImageUrl'
+          Image:
+            Fn::If:
+            - 'IsProduction'
+            - !Ref 'ProductionImageUrl'
+            - !Ref 'DevelopmentImageUrl'
+          RepositoryCredentials:
+            Fn::If:
+            - 'IsProduction'
+            - CredentialsParameter: !Ref 'SubzeroRegistryCredentials'
+            - !Ref AWS::NoValue
           PortMappings:
             - ContainerPort: 80
             - ContainerPort: 443
@@ -106,7 +236,7 @@ Resources:
               Value: pgrst
             - Name: PGRST_DB_CHANNEL_ENABLED
               Value: true
-            # uncomment to also see postgrest output in the logs
+            # uncomment to also see postgrest-plus output in the logs
             # - Name: PGRST_LOGFILE
             #   Value: /dev/fd/1
             # - Name: PGRST_LOG_LEVEL
@@ -133,6 +263,9 @@ Resources:
               Value: "0"
             - Name: OAUTH_SUCCESS_URI
               Value: /auth/on_oauth_login
+            # use this to restrict the list of domains for which an ssl certificate will be generated
+            - Name: SSL_ALLOWED_DOMAINS
+              Value: !Ref 'AllowedSSLDomainNames'
           LogConfiguration:
             LogDriver: 'awslogs'
             Options:
@@ -148,7 +281,6 @@ Resources:
             - 'NoRoute53ZoneId'
             - !Ref 'DNS'
             - !Ref 'Route53ZoneId'
-            
 
   # The service. The service is a resource which allows you to run multiple
   # copies of a type of task, and gather up their logs and metrics, as well
@@ -172,11 +304,10 @@ Resources:
             - !Ref 'SubnetId'
       TaskDefinition: !Ref 'TaskDefinition'
 
-
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: test-fargate
+      ClusterName: subzero-fargate
   
   # A security group for the containers we will run in Fargate.
   # Rules are added to this security group based on what ingress you
@@ -226,7 +357,6 @@ Resources:
                 - 'logs:CreateLogStream'
                 - 'logs:PutLogEvents'
               Resource: '*'
-
 
   LambdaExecutionRole:
     Type: "AWS::IAM::Role"

@@ -47,6 +47,7 @@ services:
     # image: registry.subzero.cloud/subzero
     ports:
       - "8080:80"
+      - "8443:443"
     environment:
       # the values are defined in the .env file
       # postgrest specific settings
@@ -80,6 +81,9 @@ services:
       - OAUTH_GITHUB_CLIENT_SECRET=${OAUTH_GITHUB_CLIENT_SECRET}
       - OAUTH_FACEBOOK_CLIENT_ID=${OAUTH_FACEBOOK_CLIENT_ID}
       - OAUTH_FACEBOOK_CLIENT_SECRET=${OAUTH_FACEBOOK_CLIENT_SECRET}
+
+      # auto-ssl list the domains separated by comma for which an ssl certificate shoudl be fetched
+      # - SSL_ALLOWED_DOMAINS="mydomain.com"
     volumes:
       - "./html:/usr/local/openresty/nginx/html"
 

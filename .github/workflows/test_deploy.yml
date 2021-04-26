@@ -12,7 +12,10 @@ on:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
 env:
   # target value can be subzerocloud or fargate
-  DEPLOY_TARGET: fargate
+  DEPLOY_TARGET: subzerocloud
+  # to use the production image, replace value with production
+  # you'll need a "On Premise" subscription
+  ENVIRONMENT: development
 
   # set to false if the database state is managed by external tooling
   DEPLOY_DATABASE_MIGRATIONS: true
@@ -152,23 +155,26 @@ jobs:
         if: ${{ env.DEPLOY_TARGET == 'fargate' }}
         run: |
           CLOUDFORMATION_ACTION=create-stack
-          CLOUDFORMATION_STACK_NAME=${APP_DOMAIN/./-}
+          CLOUDFORMATION_STACK_NAME=${APP_DOMAIN//./-}
           if aws cloudformation describe-stacks --stack-name $CLOUDFORMATION_STACK_NAME ; then
             CLOUDFORMATION_ACTION=update-stack
           fi
-          echo "ready to run deploy to fargate $CLOUDFORMATION_ACTION"
-          # aws cloudformation $CLOUDFORMATION_ACTION \
-          #   --stack-name $CLOUDFORMATION_STACK_NAME \
-          #   --template-body file://.github/workflows/fargate_single_container.yml
-          #   --parameters \
-          #       ParameterKey=VpcId,ParameterValue=$AWS_VPC_ID \
-          #       ParameterKey=SubnetId,ParameterValue=$AWS_SUBNET_ID \
-          #       ParameterKey=DomainName,ParameterValue=$APP_DOMAIN \
-          #       ParameterKey=DbHost,ParameterValue=$APP_DB_HOST \
-          #       ParameterKey=DbPort,ParameterValue=$APP_DB_PORT \
-          #       ParameterKey=DbName,ParameterValue=$APP_DB_NAME \
-          #       ParameterKey=DbAuthenticatorUser,ParameterValue=$APP_DB_AUTHENTICATOR_USER \
-          #       ParameterKey=DbAuthenticatorUserPass,ParameterValue=$APP_DB_AUTHENTICATOR_PASSWORD \
-          #       ParameterKey=DbSchema,ParameterValue=$APP_DB_SCHEMA \
-          #       ParameterKey=DbAnonRole,ParameterValue=$APP_DB_ANON_ROLE \
-          #       ParameterKey=JwtSecret,ParameterValue=$APP_JWT_SECRET
+          aws cloudformation $CLOUDFORMATION_ACTION \
+            --stack-name $CLOUDFORMATION_STACK_NAME \
+            --template-body file://.github/workflows/fargate_single_container.yml \
+            --capabilities CAPABILITY_IAM \
+            --parameters \
+                ParameterKey=VpcId,ParameterValue=$AWS_VPC_ID \
+                ParameterKey=SubnetId,ParameterValue=$AWS_SUBNET_ID \
+                ParameterKey=DomainName,ParameterValue=$APP_DOMAIN \
+                ParameterKey=DbHost,ParameterValue=$APP_DB_HOST \
+                ParameterKey=DbPort,ParameterValue=$APP_DB_PORT \
+                ParameterKey=DbName,ParameterValue=$APP_DB_NAME \
+                ParameterKey=DbAuthenticatorUser,ParameterValue=$APP_DB_AUTHENTICATOR_USER \
+                ParameterKey=DbAuthenticatorUserPass,ParameterValue=$APP_DB_AUTHENTICATOR_PASSWORD \
+                ParameterKey=DbSchema,ParameterValue=$APP_DB_SCHEMA \
+                ParameterKey=DbAnonRole,ParameterValue=$APP_DB_ANON_ROLE \
+                ParameterKey=JwtSecret,ParameterValue=$APP_JWT_SECRET \
+                ParameterKey=EnvironmentName,ParameterValue=$ENVIRONMENT \
+                ParameterKey=SubzeroEmail,ParameterValue=$SUBZERO_EMAIL \
+                ParameterKey=SubzeroPassword,ParameterValue=$SUBZERO_PASSWORD

@@ -10,6 +10,7 @@ Run subZero stack as a hassle-free service ([free plan](https://subzero.cloud/pr
 
 ✓ Out of the box GraphQL/REST/OData endpoints created by reflection over a PostgreSQL schema<br>
 ✓ Authentication using email/password or using 3rd party OAuth 2.0 providers (google/facebook/github preconfigured) <br>
+✓ Auto-generation of SSL certificates with "Let's Encrypt" <br>
 ✓ Uses [PostgREST+](https://subzero.cloud/postgrest-plus.html) with features like aggregate functions (group by), window functions, SSL, HTTP2, custom relations<br>
 ✓ Cross-platform development on macOS, Windows or Linux inside [Docker](https://www.docker.com/)<br>
 ✓ [PostgreSQL](https://www.postgresql.org/) database schema boilerplate with authentication and authorization flow<br>
@@ -18,7 +19,6 @@ Run subZero stack as a hassle-free service ([free plan](https://subzero.cloud/pr
 ✓ SQL unit test using [pgTAP](http://pgtap.org/)<br>
 ✓ Integration tests with [SuperTest / Mocha](https://github.com/visionmedia/supertest)<br>
 ✓ Community support on [Slack](https://slack.subzero.cloud/)<br>
-
 ✓ Scriptable proxy level caching using nginx [proxy_cache](http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_cache) or Redis<br>
 
 ## Directory Layout
@@ -136,7 +136,14 @@ APP_DB_AUTHENTICATOR_PASSWORD
 APP_JWT_SECRET
 ```
 
-While the deploy action is written for subzero.cloud (`DEPLOY_TARGET: subzerocloud`) it can easily be adapted for other deploy targets that run the subzero stack
+While the deploy action is written for subzero.cloud and fargate (`DEPLOY_TARGET: subzerocloud`) it can easily be adapted for other deploy targets that run the subzero stack.
+
+If you with to deploy to AWS Fargate, you'll need to additionally configure the secrets starting with `AWS_*`.
+
+If you have a preexisting database, you can also deploy the container to AWS Fargate by clicking the button below. 
+The cloudformation stack will launch the container in Fargate and create a DNS record for it in a Route53 zone. You'll only need to update the domain registration to use Amazon Route 53 name servers from the domain's zone.
+
+<a href="https://console.aws.amazon.com/cloudformation/home?#/stacks/quickcreate?stackName=subzero-container&templateURL=https://public-aws-templates.s3.amazonaws.com/fargate_single_container.yml&&param_DbPort=5432&param_DbName=app&param_DbAuthenticatorUser=authenticator&param_DbSchema=api&param_DbAnonRole=anonymous" target="_blank"><img src="https://s3.amazonaws.com/cloudformation-examples/cloudformation-launch-stack.png"></a>
 
 ## Contributing
 
