@@ -105,7 +105,7 @@ login() {
 reload_db_schema() {
     curl -s -X GET \
     --cookie session.txt \
-    "${SUBZERO_API_ENDPOINT}/rest/rpc/reload_db_schema?id=eq.$" > /dev/null
+    "${SUBZERO_API_ENDPOINT}/rest/rpc/reload_db_schema?id=eq.${APP_ID}" > /dev/null
 }
 
 update_configuration(){
