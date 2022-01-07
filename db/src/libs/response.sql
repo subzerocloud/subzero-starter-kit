@@ -1,7 +1,5 @@
 drop schema if exists response cascade;
 create schema response;
-grant usage on schema response to public;
-
 
 create or replace function response.get_cookie_string(name text, value text, expires_after int, path text) returns text as $$
     with vars as (

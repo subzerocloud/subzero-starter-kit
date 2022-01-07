@@ -1,13 +1,16 @@
-
 create or replace function login(email text, password text) returns customer as $$
 declare
     usr record;
     token text;
+    jwt_lifetime int;
+    jwt_secret text;
 begin
+    jwt_lifetime := coalesce(current_setting('pgrst.jwt_lifetimet',true)::int, 3600);
+    jwt_secret := coalesce(settings.get('jwt_secret'), current_setting('pgrst.jwt_secret',true));
 
-	select * from data."user" as u
+    select * from data."user" as u
     where u.email = $1 and u.password = public.crypt($2, u.password)
-   	INTO usr;
+    into usr;
 
     if usr is NULL then
         raise exception 'invalid email/password';
@@ -16,11 +19,11 @@ begin
             json_build_object(
                 'role', usr.role,
                 'user_id', usr.id,
-                'exp', extract(epoch from now())::integer + settings.get('jwt_lifetime')::int -- token expires in 1 hour
+                'exp', extract(epoch from now())::integer + jwt_lifetime
             ),
-            settings.get('jwt_secret')
+            jwt_secret
         );
-        perform response.set_cookie('SESSIONID', token, settings.get('jwt_lifetime')::int,'/');
+        perform response.set_cookie('SESSIONID', token, jwt_lifetime, '/');
         return (
             usr.id,
             usr.name,

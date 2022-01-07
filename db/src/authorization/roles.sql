@@ -8,6 +8,9 @@
 -- it can only switch to other roles
 drop role if exists :authenticator;
 create role :"authenticator" with login password :'authenticator_pass';
+alter role :"authenticator" SET log_statement = 'all'; -- this is only used in local development
+-- uncomment this line if you want to use the authenticator role for streaming WAL using pg-event-proxy (see docker-compose.yaml for more details)
+-- alter role :"authenticator" with REPLICATION;
 
 -- this is an application level role
 -- requests that are not authenticated will be executed with this role's privileges
@@ -25,3 +28,10 @@ drop role if exists webadmin;
 create role webadmin;
 grant webadmin to :"authenticator";
 grant webuser to webadmin;
+
+-- role used by the proxy to make internal requests
+drop role if exists proxy;
+create role proxy;
+grant proxy to :"authenticator";
+
+

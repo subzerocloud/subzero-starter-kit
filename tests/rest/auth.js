@@ -1,5 +1,6 @@
-import { rest_service, resetdb } from '../common'
-import { should } from 'should'
+
+require('should');
+const {rest_service, resetdb} = require('../common.js');
 
 describe('auth', function () {
   before(function (done) { resetdb(); done() })

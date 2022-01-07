@@ -14,6 +14,7 @@ create type customer as (id int, name text, email text, role text);
 
 \ir login.sql
 \ir logout.sql
+\ir on_oauth_login.sql
 \ir refresh_token.sql
 \ir signup.sql
 \ir me.sql

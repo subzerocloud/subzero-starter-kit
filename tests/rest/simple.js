@@ -1,4 +1,4 @@
-import { rest_service } from '../common'
+const {rest_service} = require('../common.js');
 
 describe('root endpoint', function () {
   it('returns json', function (done) {
